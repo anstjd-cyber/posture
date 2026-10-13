@@ -1,9 +1,41 @@
-# posture — 거북목 측정 결과 페이지
+# posture — 거북목 측정 체험
 
-디지털 부스에서 운영하는 **거북목 측정 체험**의 결과 페이지입니다.
-부스 화면에 뜬 QR을 스캔하면 체험자의 휴대폰에서 이 페이지가 열립니다.
+디지털 부스에서 운영하는 **거북목 측정 체험**입니다.
+웹캠으로 목 각도를 재서 점수를 매기고, 등급에 맞는 스트레칭을 안내합니다.
 
-👉 **https://anstjd-cyber.github.io/posture/result/**
+| | 주소 |
+|---|---|
+| 🏠 시작 | **https://anstjd-cyber.github.io/posture/** |
+| 📷 측정하기 | https://anstjd-cyber.github.io/posture/booth/ |
+| 📱 결과·스트레칭 | https://anstjd-cyber.github.io/posture/result/ |
+
+**모든 처리는 브라우저 안에서 일어납니다.** 영상이 서버로 올라가지 않고,
+저장되지도 않으며, 수집하는 개인정보가 하나도 없습니다.
+
+## 측정하기 (`/booth/`)
+
+웹캠으로 **측면 → 정면** 두 단계를 찍어 측정합니다.
+
+- 1단계(측면): 귀와 어깨의 위치로 **목 각도**를 재서 거북목 점수를 냅니다
+- 2단계(정면): 어깨 좌우 기울기로 **어깨 균형**을 봅니다 (별도 지표)
+- 2초간 모은 값들의 중위값을 쓰므로 한 프레임의 흔들림에 휘둘리지 않습니다
+- 자세 인식은 [MediaPipe Pose Landmarker](https://ai.google.dev/edge/mediapipe) 를 브라우저에서 실행합니다
+
+> 측면 자세를 잡아야 해서 **노트북/데스크톱 + 삼각대 환경에 맞춰** 만들었습니다.
+> 휴대폰 단독으로는 옆으로 서면서 화면을 보기 어려우니, 도와줄 사람이 있으면 좋습니다.
+
+### 운영자 단축키
+
+`O` 운영자 패널 · `C` 캘리브레이션 수치 · `D` 집계 화면 · `Esc` 처음으로
+
+### ⚠ 각도 임계값은 현장에서 맞춰야 합니다
+
+거북목의 임상 지표(CVA)는 목 아래 뼈(C7)를 기준으로 삼지만 웹캠은 C7을 볼 수 없어,
+이 앱은 **어깨 관절점으로 근사**합니다. 그래서 각도 **절대값에는 편향이 있고**,
+상대 비교에 의미가 있습니다. 부스에서 쓸 때는 `C` 키로 원시 각도를 보며
+`O` 패널에서 등급 경계를 장비·거리에 맞게 조정해야 합니다.
+
+## 결과 페이지 (`/result/`)
 
 ## 어떻게 동작하나요
 
@@ -45,17 +77,26 @@ https://anstjd-cyber.github.io/posture/result/#s=72&g=B&a=74.3&b=96
 .../result/                         파라미터 없음 (가이드만)
 ```
 
-## 고치려면
+## 파일 구성
 
-`result/index.html` 한 파일에 전부 들어있습니다. 외부 라이브러리를 쓰지 않습니다.
+```
+index.html              시작 페이지
+booth/index.html        측정 앱 (단일 파일)
+booth/vendor/           MediaPipe 런타임, QR 생성 라이브러리
+booth/models/           자세 인식 모델 (5.6MB)
+result/index.html       결과·스트레칭 페이지 (단일 파일, 외부 의존성 없음)
+```
+
+두 앱 모두 **빌드 과정이 없습니다.** HTML 파일을 고쳐서 push 하면 그대로 반영됩니다.
 
 | 고치고 싶은 것 | 찾을 위치 |
 |---|---|
-| 등급별 설명 문구 | `const GRADES` |
-| 등급별 처방 | `const PLANS` |
-| 스트레칭 동작·설명·시간 | `const EXERCISES` |
-| 환경 체크리스트 | `const CHECKS` |
-| 색상 | 맨 위 `:root` |
+| 등급 경계·타이밍 등 측정 설정 | `booth/index.html` 의 `CFG_DEFAULT` (앱에서 `O` 키로도 수정 가능) |
+| 등급별 설명 문구 | `result/index.html` 의 `GRADES` |
+| 등급별 처방 (어떤 운동을 줄지) | `result/index.html` 의 `PLANS` |
+| 스트레칭 동작·설명·시간 | `result/index.html` 의 `EXERCISES` |
+| 환경 체크리스트 | `result/index.html` 의 `CHECKS` |
+| 색상 | 각 파일 맨 위 `:root` |
 
 ## ⚠ 면책
 
