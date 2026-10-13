@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>내 거북목 결과</title>
+<meta name="description" content="부스에서 측정한 거북목 점수와 맞춤 스트레칭 가이드">
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --fg:#141a2b; --muted:#687191;
+    --line:#e5e8f2; --accent:#2563eb; --accentSoft:#eaf0ff;
+    --gA:#0f9d6e; --gB:#c98a06; --gC:#e0702a; --gD:#d8484e;
+    --shadow:0 1px 2px rgba(20,26,43,.05), 0 8px 24px rgba(20,26,43,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0b1020; --card:#151c31; --fg:#eef1fa; --muted:#98a2c4;
+      --line:#262f49; --accent:#60a5fa; --accentSoft:#1b2644;
+      --gA:#34d399; --gB:#fbbf24; --gC:#fb923c; --gD:#f87171;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Segoe UI",system-ui,sans-serif;
+    line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:22px 16px 56px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:22px;margin-bottom:16px;box-shadow:var(--shadow)}
+
+  /* ---------- 헤더 ---------- */
+  .brand{display:flex;align-items:center;gap:9px;color:var(--muted);
+    font-size:13px;font-weight:700;letter-spacing:.02em;margin-bottom:16px;padding:0 4px}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+
+  /* ---------- 점수 ---------- */
+  .hero{text-align:center;padding:30px 22px 26px}
+  .tag{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.1em;
+    padding:7px 16px;border-radius:999px;color:#fff;margin-bottom:12px}
+  .score{font-size:84px;font-weight:900;line-height:.92;letter-spacing:-.045em;
+    font-variant-numeric:tabular-nums}
+  .score span{font-size:.28em;font-weight:700;color:var(--muted);letter-spacing:0;margin-left:3px}
+  .gname{font-size:25px;font-weight:800;margin-top:8px}
+  .gdesc{color:var(--muted);font-size:15.5px;margin-top:12px;text-align:left}
+
+  .meterwrap{position:relative;margin:26px 0 10px}
+  .meter{height:12px;border-radius:99px;
+    background:linear-gradient(90deg,var(--gD),var(--gC) 36%,var(--gB) 62%,var(--gA))}
+  .pin{position:absolute;top:-7px;width:4px;height:26px;border-radius:3px;background:var(--fg);
+    transform:translateX(-50%);box-shadow:0 0 0 3px var(--card)}
+  .mlab{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding:0 1px}
+
+  /* ---------- 자세 그림 ---------- */
+  .figure{margin-top:4px}
+  .figure svg{width:100%;height:auto;display:block;max-width:300px;margin:0 auto}
+  .figcap{text-align:center;color:var(--muted);font-size:13.5px;margin-top:6px}
+
+  /* ---------- 지표 ---------- */
+  h2{font-size:17px;margin:0 0 14px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--accentSoft);color:var(--accent);
+    font-size:12px;font-weight:900;display:grid;place-items:center;flex:none}
+  .kv{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 0;border-bottom:1px solid var(--line)}
+  .kv:last-child{border-bottom:0;padding-bottom:0}
+  .kv .k{color:var(--muted);font-size:14.5px}
+  .kv .v{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+  .pill{font-size:13px;font-weight:800;padding:5px 12px;border-radius:999px;color:#fff}
+
+  /* ---------- 스트레칭 ---------- */
+  .plan{font-size:15.5px;background:var(--accentSoft);border-radius:14px;padding:14px 16px;
+    margin-bottom:18px}
+  .plan b{color:var(--accent)}
+  .ex{border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+  .ex:last-child{margin-bottom:0}
+  .exhead{display:flex;align-items:flex-start;gap:12px}
+  .exart{flex:none;width:58px;height:58px;border-radius:12px;background:var(--bg);
+    display:grid;place-items:center}
+  .exart svg{width:46px;height:46px;display:block}
+  .extitle{flex:1;min-width:0}
+  .extitle h3{margin:0;font-size:16.5px;font-weight:800}
+  .extitle .dose{color:var(--accent);font-size:13.5px;font-weight:800;margin-top:2px}
+  .exbody{margin:12px 0 0;padding:0 0 0 19px;font-size:15px;color:var(--fg)}
+  .exbody li{margin:5px 0}
+  .tip{display:flex;gap:9px;margin-top:12px;padding:11px 13px;border-radius:11px;
+    background:var(--bg);color:var(--muted);font-size:14px;line-height:1.55}
+  .tip::before{content:"!";flex:none;width:18px;height:18px;border-radius:50%;
+    background:var(--muted);color:var(--card);font-weight:900;font-size:12px;
+    display:grid;place-items:center;margin-top:2px}
+  .timer{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .timer button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--fg);
+    font:inherit;font-weight:800;font-size:14px;padding:10px 18px;border-radius:999px;cursor:pointer}
+  .timer button:active{transform:scale(.97)}
+  .timer button.run{background:var(--accent);color:#fff;border-color:transparent}
+  .tbar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+  .tbar i{display:block;height:100%;width:0;background:var(--accent)}
+  .tnum{flex:none;font-variant-numeric:tabular-nums;font-weight:800;font-size:15px;
+    color:var(--muted);min-width:42px;text-align:right}
+
+  /* ---------- 체크리스트 ---------- */
+  .chk{list-style:none;margin:0;padding:0}
+  .chk li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);
+    font-size:15px;cursor:pointer}
+  .chk li:last-child{border-bottom:0;padding-bottom:0}
+  .chk .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);
+    margin-top:2px;display:grid;place-items:center;transition:.15s}
+  .chk .box svg{width:13px;height:13px;opacity:0;stroke:#fff;stroke-width:3.2;fill:none;
+    stroke-linecap:round;stroke-linejoin:round}
+  .chk li.on .box{background:var(--accent);border-color:var(--accent)}
+  .chk li.on .box svg{opacity:1}
+  .chk li.on .t{color:var(--muted);text-decoration:line-through}
+
+  /* ---------- 기타 ---------- */
+  .faq p{margin:0 0 12px;font-size:15px}
+  .faq p:last-child{margin-bottom:0}
+  .faq b{font-weight:800}
+  .actions{display:flex;gap:10px;margin:4px 0 16px}
+  .actions button{flex:1;border:0;border-radius:14px;padding:15px;font:inherit;font-weight:800;
+    font-size:15px;cursor:pointer;background:var(--card);color:var(--fg);border:1px solid var(--line)}
+  .actions button.p{background:var(--accent);color:#fff;border-color:transparent}
+  .note{font-size:13px;color:var(--muted);text-align:center;padding:4px 10px 0;line-height:1.7}
+  .note strong{color:var(--fg)}
+  .noparam{background:var(--accentSoft);border:1px solid transparent}
+  .noparam h2{margin-bottom:8px}
+  .noparam p{margin:0;font-size:15px;color:var(--fg)}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--fg);color:var(--bg);padding:12px 24px;border-radius:999px;font-weight:800;
+    font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand"><span class="dot"></span>거북목 측정 체험 · 결과</div>
+
+  <!-- 측정값 없이 열린 경우 -->
+  <section class="card noparam" id="noparam" hidden>
+    <h2>측정 결과가 없어요</h2>
+    <p>부스에서 측정을 하고 화면에 나온 QR을 스캔하면 내 점수가 함께 표시됩니다.
+       아래 스트레칭 가이드는 그대로 보실 수 있어요.</p>
+  </section>
+
+  <!-- 점수 -->
+  <section class="card hero" id="hero">
+    <div class="tag" id="tag">—</div>
+    <div class="score"><span id="score">–</span><span>점</span></div>
+    <div class="gname" id="gname"></div>
+    <div class="meterwrap">
+      <div class="meter"></div>
+      <div class="pin" id="pin" style="left:50%"></div>
+    </div>
+    <div class="mlab"><span>심함</span><span>주의</span><span>양호</span></div>
+    <p class="gdesc" id="gdesc"></p>
+  </section>
+
+  <!-- 자세 그림 -->
+  <section class="card" id="figcard">
+    <h2><span class="n">1</span>측정된 내 자세</h2>
+    <div class="figure" id="figure"></div>
+    <p class="figcap" id="figcap"></p>
+    <div class="kv"><span class="k">목 각도 (측면)</span><span class="v" id="vAngle">–</span></div>
+    <div class="kv"><span class="k">어깨 균형</span><span class="pill" id="vBalance">–</span></div>
+  </section>
+
+  <!-- 맞춤 스트레칭 -->
+  <section class="card">
+    <h2><span class="n">2</span>내게 맞는 스트레칭</h2>
+    <div class="plan" id="plan"></div>
+    <div id="exercises"></div>
+  </section>
+
+  <!-- 환경 체크리스트 -->
+  <section class="card">
+    <h2><span class="n">3</span>지금 바로 고칠 수 있는 것</h2>
+    <ul class="chk" id="chk"></ul>
+  </section>
+
+  <!-- 설명 -->
+  <section class="card faq">
+    <h2><span class="n">4</span>거북목이 뭔가요?</h2>
+    <p>머리가 어깨보다 <b>앞으로 나온 상태</b>를 말합니다. 목이 거북처럼 앞으로 빠져 보여서
+       붙은 이름이고, 의학적으로는 <b>전방머리자세(Forward Head Posture)</b>라고 합니다.</p>
+    <p>머리는 몸에서 꽤 무거운 부위입니다. 어깨 위에 똑바로 얹혀 있을 때는 뼈가 무게를
+       받쳐주지만, 앞으로 나오면 그 무게를 <b>목과 어깨 근육이 계속 붙잡고</b> 있어야 합니다.
+       그래서 목 뒤가 뻣뻣해지고 어깨가 아프고, 두통이 생기기도 합니다.</p>
+    <p>원인은 대개 생활 습관입니다. <b>낮은 모니터, 고개 숙여 보는 휴대폰, 오래 앉아 있기</b>가
+       가장 흔합니다. 반대로 말하면 환경과 습관을 바꾸면 좋아질 수 있다는 뜻입니다.</p>
+  </section>
+
+  <div class="actions">
+    <button class="p" id="btnShare">결과 공유하기</button>
+    <button id="btnTop">처음으로</button>
+  </div>
+
+  <p class="note">
+    이 측정은 <strong>의료기기가 아니며 진단에 사용할 수 없습니다.</strong>
+    웹캠으로 어깨와 귀의 위치를 추정한 참고용 수치입니다.<br>
+    목·어깨 통증이나 팔 저림이 있다면 정형외과 또는 재활의학과 진료를 받아보세요.<br><br>
+    측정 영상은 부스 기기 안에서만 처리되어 <strong>저장·전송되지 않았습니다.</strong>
+    이 페이지는 점수만 주소에 담아 보여주며, 아무 정보도 수집하지 않습니다.
+  </p>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const $ = s => document.querySelector(s);
+
+  /* ------------------------------------------------ 파라미터 읽기
+     부스 앱은 #s=72&g=B&a=74.3&b=96 형태로 넘긴다.
+     사람이 주소를 손으로 고쳐 ?로 보낼 수도 있으니 둘 다 받는다. */
+  function readParams(){
+    const out = {};
+    for(const raw of [location.hash.replace(/^#/,''), location.search.replace(/^\?/,'')]){
+      if(!raw) continue;
+      new URLSearchParams(raw).forEach((v,k)=>{ if(out[k]===undefined) out[k]=v; });
+    }
+    return out;
+  }
+  const num = (v, min, max) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : null;
+  };
+
+  /* 주소를 손으로 고쳐서 열 수도 있으니, 말이 되는 범위를 벗어난 값은
+     0 으로 눌러 그리기보다 '없는 값'으로 취급해 그림을 아예 빼는 쪽이 정직하다. */
+  const plausible = (v, min, max) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) && n >= min && n <= max ? n : null;
+  };
+
+  const P = readParams();
+  const score   = num(P.s, 0, 100);
+  const angle   = plausible(P.a, 20, 160);
+  const balance = num(P.b, 0, 100);
+
+  // 주소의 해시만 바뀌면 브라우저가 스크립트를 다시 실행하지 않아 이전 점수가 남는다
+  window.addEventListener('hashchange', () => location.reload());
+  let grade = String(P.g || '').toUpperCase();
+  if(!'ABCD'.includes(grade) || grade.length !== 1){
+    // 등급이 없거나 깨졌으면 점수로 되돌려 추정한다
+    grade = score === null ? null : score >= 74 ? 'A' : score >= 53 ? 'B' : score >= 26 ? 'C' : 'D';
+  }
+  const hasResult = score !== null && grade !== null;
+
+  /* ------------------------------------------------ 등급 정의 */
+  const GRADES = {
+    A:{name:'양호', color:'var(--gA)',
+       desc:'머리가 어깨 위에 잘 얹혀 있습니다. 목이 무게를 뼈로 받치고 있는 좋은 상태예요. ' +
+            '지금 자세를 유지하는 것만으로 충분하니, 아래 환경 점검만 가볍게 확인해 보세요.'},
+    B:{name:'주의', color:'var(--gB)',
+       desc:'아직 큰 문제는 아니지만 머리가 조금 앞으로 나와 있습니다. 이 상태로 오래 앉아 있으면 ' +
+            '목 뒤가 뻣뻣해지기 쉬워요. 턱 당기기를 습관으로 만들면 지금 돌려놓을 수 있는 단계입니다.'},
+    C:{name:'거북목 의심', color:'var(--gC)',
+       desc:'머리가 어깨보다 뚜렷하게 앞에 있습니다. 목과 어깨 근육이 계속 머리를 붙잡고 있는 상태라 ' +
+            '뻐근함이나 두통이 있을 수 있어요. 스트레칭과 함께 모니터 높이부터 바꿔보시는 걸 권합니다.'},
+    D:{name:'거북목 심함', color:'var(--gD)',
+       desc:'목에 부담이 많이 걸리는 자세입니다. 스트레칭도 도움이 되지만, 그보다 작업 환경을 바꾸는 것이 ' +
+            '먼저입니다. 이미 통증이나 팔 저림이 있다면 한 번 진료를 받아보시는 걸 권합니다.'}
+  };
+
+  const BAL = [
+    {min:85, label:'균형 양호', color:'var(--gA)'},
+    {min:70, label:'약간 기울어짐', color:'var(--gB)'},
+    {min:0,  label:'기울어짐', color:'var(--gC)'}
+  ];
+
+  /* ------------------------------------------------ 점수 영역 */
+  if(!hasResult){
+    $('#noparam').hidden = false;
+    $('#hero').hidden = true;
+    $('#figcard').hidden = true;
+  }else{
+    const g = GRADES[grade];
+    $('#tag').textContent = grade + ' 등급';
+    $('#tag').style.background = g.color;
+    $('#score').textContent = Math.round(score);
+    $('#gname').textContent = g.name;
+    $('#gname').style.color = g.color;
+    $('#gdesc').textContent = g.desc;
+    $('#pin').style.left = Math.round(score) + '%';
+    document.title = `거북목 ${Math.round(score)}점 · ${g.name}`;
+
+    $('#vAngle').textContent = angle === null ? '–' : angle.toFixed(1) + '°';
+    if(balance === null){
+      $('#vBalance').textContent = '측정 안 됨';
+      $('#vBalance').style.background = 'var(--muted)';
+    }else{
+      const b = BAL.find(x => balance >= x.min);
+      $('#vBalance').textContent = `${b.label} · ${Math.round(balance)}점`;
+      $('#vBalance').style.background = b.color;
+    }
+    drawPosture(angle, g.color);
+  }
+
+  /* ------------------------------------------------ 자세 그림
+     측정된 각도를 그대로 그린다. 어깨를 꼭짓점으로 두고, 각도가 작을수록
+     머리가 앞으로 나온 모습이 된다. 점선은 '머리가 어깨 바로 위'인 기준선. */
+  function drawPosture(deg, color){
+    const box = $('#figure');
+    if(deg === null){ box.remove(); $('#figcap').remove(); return; }
+    const SX = 96, SY = 182, L = 104, R = 27;   // 어깨 좌표, 목 길이, 머리 반지름
+    const rad = deg * Math.PI / 180;
+    const ex = SX + L * Math.cos(rad);
+    const ey = SY - L * Math.sin(rad);
+    const gap = Math.round(ex - SX);            // 어깨 기준 머리 전방 이동(px)
+    const arcR = 46;
+    const sweepEnd = { x: SX + arcR * Math.cos(rad), y: SY - arcR * Math.sin(rad) };
+    const large = deg > 180 ? 1 : 0;
+
+    box.innerHTML = `
+      <svg viewBox="0 0 268 220" role="img"
+           aria-label="측정된 목 각도 ${deg.toFixed(1)}도를 나타낸 측면 그림">
+        <!-- 바닥/몸통 -->
+        <line x1="20" y1="208" x2="248" y2="208" stroke="var(--line)" stroke-width="2"/>
+        <path d="M${SX} ${SY} C ${SX-12} ${SY+14}, ${SX-8} ${SY+20}, ${SX-4} ${SY+26}"
+              stroke="var(--muted)" stroke-width="9" stroke-linecap="round" fill="none" opacity=".35"/>
+        <!-- 어깨 기준 수평선 -->
+        <line x1="26" y1="${SY}" x2="242" y2="${SY}"
+              stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 6" opacity=".7"/>
+        <!-- 머리가 어깨 바로 위일 때의 기준 위치 -->
+        <line x1="${SX}" y1="${SY}" x2="${SX}" y2="${SY - L}"
+              stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 6" opacity=".55"/>
+        <circle cx="${SX}" cy="${SY - L}" r="${R}" fill="none"
+                stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 5" opacity=".5"/>
+        <!-- 각도 호 -->
+        <path d="M ${SX + arcR} ${SY} A ${arcR} ${arcR} 0 ${large} 0 ${sweepEnd.x} ${sweepEnd.y}"
+              fill="none" stroke="${color}" stroke-width="2.5" opacity=".85"/>
+        <!-- 측정된 목선 + 머리 -->
+        <line x1="${SX}" y1="${SY}" x2="${ex}" y2="${ey}"
+              stroke="${color}" stroke-width="7" stroke-linecap="round"/>
+        <circle cx="${ex}" cy="${ey}" r="${R}" fill="${color}" opacity=".16"/>
+        <circle cx="${ex}" cy="${ey}" r="${R}" fill="none" stroke="${color}" stroke-width="3.5"/>
+        <circle cx="${SX}" cy="${SY}" r="6" fill="${color}"/>
+        <!-- 각도 라벨 -->
+        <text x="${SX + arcR + 10}" y="${SY - 13}" fill="${color}"
+              font-size="17" font-weight="800"
+              font-family="system-ui, sans-serif">${deg.toFixed(1)}°</text>
+      </svg>`;
+
+    $('#figcap').innerHTML = gap <= 2
+      ? '점선은 머리가 어깨 바로 위에 있는 기준 위치입니다. 거의 일치합니다.'
+      : `점선이 기준 위치(어깨 바로 위)이고, 색칠된 쪽이 측정된 내 머리 위치입니다.
+         <b>각도가 90°에 가까울수록 좋습니다.</b>`;
+  }
+
+  /* ------------------------------------------------ 스트레칭 */
+  const ART = {
+    chin: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+             <circle cx="30" cy="15" r="7"/><path d="M30 22v7M30 29H20"/>
+             <path d="M22 11h-9"/><path d="M17 7l-5 4 5 4"/></svg>`,
+    neck: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+             <circle cx="20" cy="14" r="7"/><path d="M22 21l3 9M25 30H14"/>
+             <path d="M30 10c5 2 6 7 4 11"/><path d="M36 20l-2.5-1 1 2.6"/></svg>`,
+    chest:`<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+             <circle cx="24" cy="12" r="6"/><path d="M24 18v12"/>
+             <path d="M24 22l-9-5M24 22l9-5"/><path d="M11 13l4 4-4 1M37 13l-4 4 4 1"/></svg>`,
+    blade:`<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+             <circle cx="24" cy="12" r="6"/><path d="M24 18v13"/>
+             <path d="M16 23h-6M32 23h6"/><path d="M13 20l-3 3 3 3M35 20l3 3-3 3"/></svg>`
+  };
+
+  const EXERCISES = {
+    chin:{
+      art:ART.chin, title:'턱 당기기', dose:'5초 유지 × 10회',
+      timer:{sec:5, label:'5초 유지'},
+      steps:[
+        '똑바로 앉거나 선 상태에서 정면을 봅니다.',
+        '고개를 숙이지 말고, <b>턱을 목 쪽으로 수평하게</b> 당깁니다. 뒤통수가 뒤로 밀리는 느낌입니다.',
+        '목 뒤가 길어지는 느낌으로 5초 유지한 뒤 천천히 풉니다.'
+      ],
+      warn:'거북목에 가장 직접적인 운동입니다. 고개를 아래로 숙이면 효과가 없습니다.'
+    },
+    neck:{
+      art:ART.neck, title:'목 옆·뒤 늘리기', dose:'20초 × 좌우 각 2회',
+      timer:{sec:20, label:'20초 유지'},
+      steps:[
+        '한쪽 어깨를 아래로 내린 상태를 유지합니다.',
+        '반대쪽 손으로 머리를 잡고 <b>천천히</b> 옆으로 당겨 목 옆을 늘립니다.',
+        '20초 유지하고 좌우를 바꿉니다.'
+      ],
+      warn:'반동을 주거나 세게 당기지 마세요. 늘어나는 느낌까지만입니다.'
+    },
+    chest:{
+      art:ART.chest, title:'가슴 열기', dose:'30초 × 2회',
+      timer:{sec:30, label:'30초 유지'},
+      steps:[
+        '문틀이나 벽 모서리에 양 팔꿈치를 어깨 높이로 댑니다.',
+        '한 발을 앞으로 내밀어 <b>가슴 앞쪽이 늘어나는</b> 지점까지 체중을 옮깁니다.',
+        '허리를 젖히지 말고 30초 유지합니다.'
+      ],
+      warn:'거북목이면 가슴 근육도 함께 짧아져 있어, 목만 풀면 금방 되돌아갑니다.'
+    },
+    blade:{
+      art:ART.blade, title:'견갑 모으기', dose:'5초 유지 × 10회',
+      timer:{sec:5, label:'5초 유지'},
+      steps:[
+        '팔을 편하게 내리고 어깨를 <b>뒤쪽 아래로</b> 모읍니다.',
+        '양쪽 날개뼈 사이를 조이는 느낌으로 5초 유지합니다.',
+        '어깨가 올라가지 않게 주의하며 10회 반복합니다.'
+      ],
+      warn:'머리를 받쳐주는 등 상부 근육을 깨우는 운동입니다.'
+    }
+  };
+
+  /* 등급별 처방 — 심할수록 환경 개선 쪽에 무게를 둔다 */
+  const PLANS = {
+    A:{ list:['chin','blade'],
+        text:'지금 상태가 좋으니 <b>유지</b>가 목표입니다. 턱 당기기를 하루 1세트만 해주고, ' +
+             '아래 환경 점검을 한 번 확인해 보세요.' },
+    B:{ list:['chin','chest','blade'],
+        text:'아직 돌려놓기 쉬운 단계입니다. <b>턱 당기기를 1시간에 한 번</b>만 습관으로 만들어 보세요. ' +
+             '가슴 열기는 하루 2회면 충분합니다.' },
+    C:{ list:['chin','neck','chest','blade'],
+        text:'스트레칭을 <b>하루 2~3회</b> 하시고, 그보다 중요한 것은 아래 환경 점검입니다. ' +
+             '모니터 높이 하나만 바꿔도 체감이 큽니다.' },
+    D:{ list:['chin','neck','chest','blade'],
+        text:'스트레칭은 <b>매일</b> 하시되, <b>작업 환경을 바꾸는 것이 먼저</b>입니다. ' +
+             '하루 8시간의 자세를 이기는 스트레칭은 없습니다. ' +
+             '통증이나 팔 저림이 있다면 진료를 받아보세요.' },
+    none:{ list:['chin','neck','chest','blade'],
+        text:'거북목 예방과 개선에 가장 널리 쓰이는 네 가지입니다. ' +
+             '이 중 <b>턱 당기기</b>가 가장 직접적인 운동입니다.' }
+  };
+
+  const plan = PLANS[hasResult ? grade : 'none'];
+  $('#plan').innerHTML = plan.text;
+  $('#exercises').innerHTML = plan.list.map((key, i) => {
+    const e = EXERCISES[key];
+    return `<div class="ex">
+      <div class="exhead">
+        <div class="exart">${e.art}</div>
+        <div class="extitle">
+          <h3>${i+1}. ${e.title}</h3>
+          <div class="dose">${e.dose}</div>
+        </div>
+      </div>
+      <ol class="exbody">${e.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      <div class="tip">${e.warn}</div>
+      <div class="timer" data-sec="${e.timer.sec}">
+        <button type="button">${e.timer.label}</button>
+        <div class="tbar"><i></i></div>
+        <div class="tnum">${e.timer.sec}s</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  /* 유지 시간 타이머 — 폰을 보면서 초를 세지 않아도 되게 */
+  document.querySelectorAll('.timer').forEach(t => {
+    const sec = parseInt(t.dataset.sec, 10);
+    const btn = t.querySelector('button');
+    const bar = t.querySelector('i');
+    const num = t.querySelector('.tnum');
+    let raf = null, t0 = 0;
+
+    const stop = (done) => {
+      cancelAnimationFrame(raf); raf = null;
+      btn.classList.remove('run');
+      btn.textContent = done ? '다시 하기' : `${sec}초 유지`;
+      bar.style.width = done ? '100%' : '0';
+      num.textContent = done ? '완료!' : sec + 's';
+      if(done) setTimeout(()=>{ if(!raf){ bar.style.width='0'; num.textContent=sec+'s'; } }, 2500);
+    };
+
+    const frame = () => {
+      const left = sec - (performance.now() - t0)/1000;
+      if(left <= 0){ stop(true); return; }
+      bar.style.width = ((sec-left)/sec*100) + '%';
+      num.textContent = Math.ceil(left) + 's';
+      raf = requestAnimationFrame(frame);
+    };
+
+    btn.addEventListener('click', () => {
+      if(raf){ stop(false); return; }
+      t0 = performance.now();
+      btn.classList.add('run');
+      btn.textContent = '멈추기';
+      raf = requestAnimationFrame(frame);
+    });
+  });
+
+  /* ------------------------------------------------ 환경 체크리스트 */
+  const CHECKS = [
+    ['모니터 상단이 눈높이와 같거나 살짝 아래', '낮은 모니터가 거북목의 가장 흔한 원인입니다. 받침대나 책을 쌓아 올리세요.'],
+    ['화면과 눈 사이 50~70cm', '너무 가까우면 자연히 목이 앞으로 나옵니다.'],
+    ['휴대폰은 눈높이로 들어 올려서 보기', '고개를 숙이는 대신 팔을 올리는 쪽이 목에 훨씬 낫습니다.'],
+    ['노트북만 쓸 때는 외장 키보드 + 받침대', '노트북 화면은 구조적으로 너무 낮습니다.'],
+    ['30~50분마다 일어나서 움직이기', '가장 좋은 자세도 오래 유지하면 나쁜 자세가 됩니다.'],
+    ['등받이에 허리를 붙이고 엉덩이를 깊게', '허리가 무너지면 목이 따라 앞으로 나옵니다.']
+  ];
+  const CHK_KEY = 'tnb.result.checks';
+  let checked = [];
+  try{ checked = JSON.parse(localStorage.getItem(CHK_KEY) || '[]'); }catch{ checked = []; }
+
+  $('#chk').innerHTML = CHECKS.map(([t, why], i) => `
+    <li data-i="${i}" class="${checked.includes(i) ? 'on' : ''}">
+      <span class="box"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 4.5"/></svg></span>
+      <span class="t"><b>${t}</b><br><span style="color:var(--muted);font-size:14px">${why}</span></span>
+    </li>`).join('');
+
+  $('#chk').addEventListener('click', e => {
+    const li = e.target.closest('li'); if(!li) return;
+    const i = +li.dataset.i;
+    li.classList.toggle('on');
+    checked = li.classList.contains('on') ? [...checked, i] : checked.filter(x => x !== i);
+    // 저장은 편의 기능일 뿐이라, 시크릿 모드 등에서 막혀도 그냥 넘어간다
+    try{ localStorage.setItem(CHK_KEY, JSON.stringify(checked)); }catch{}
+  });
+
+  /* ------------------------------------------------ 공유 / 기타 */
+  let toastTimer;
+  function toast(msg){
+    const el = $('#toast'); el.textContent = msg; el.classList.add('on');
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.remove('on'), 2200);
+  }
+
+  $('#btnShare').addEventListener('click', async () => {
+    const text = hasResult
+      ? `거북목 측정 결과: ${Math.round(score)}점 (${grade}등급 · ${GRADES[grade].name})`
+      : '거북목 측정하고 맞춤 스트레칭 받아보기';
+    const data = {title:'거북목 측정 결과', text, url:location.href};
+    try{
+      if(navigator.share){ await navigator.share(data); return; }
+      await navigator.clipboard.writeText(`${text}\n${location.href}`);
+      toast('링크를 복사했어요');
+    }catch(err){
+      if(err && err.name === 'AbortError') return;   // 사용자가 공유창을 닫은 경우
+      toast('화면을 캡처해서 저장해 주세요');
+    }
+  });
+
+  $('#btnTop').addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+})();
+</script>
+</body>
+</html>

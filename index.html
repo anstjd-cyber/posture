@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>거북목 측정 결과</title>
+<script>
+  // 주소를 짧게 적거나 /result 를 빠뜨리고 열어도 결과 페이지로 보낸다.
+  // 점수가 담긴 해시(#s=..&g=..)는 그대로 넘겨야 하므로 붙여서 이동한다.
+  location.replace('result/' + location.search + location.hash);
+</script>
+<meta http-equiv="refresh" content="0; url=result/">
+</head>
+<body style="font-family:system-ui,sans-serif;padding:40px;text-align:center">
+  <p>결과 페이지로 이동 중… <a href="result/">바로 가기</a></p>
+</body>
+</html>
