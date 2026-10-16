@@ -123,6 +123,13 @@
   .actions button.p{background:var(--accent);color:#fff;border-color:transparent}
   .note{font-size:13px;color:var(--muted);text-align:center;padding:4px 10px 0;line-height:1.7}
   .note strong{color:var(--fg)}
+  .homelink{text-align:center;margin:20px 0 4px}
+  .homelink a{display:inline-block;padding:11px 18px;border-radius:12px;
+    border:1px solid var(--line);background:var(--card);color:var(--muted);
+    font-size:14px;font-weight:700;text-decoration:none;
+    transition:color .15s, border-color .15s}
+  @media (hover:hover){ .homelink a:hover{color:var(--accent);border-color:var(--accent)} }
+  .homelink a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .noparam{background:var(--accentSoft);border:1px solid transparent}
   .noparam h2{margin-bottom:8px}
   .noparam p{margin:0;font-size:15px;color:var(--fg)}
@@ -193,7 +200,7 @@
 
   <div class="actions">
     <button class="p" id="btnShare">결과 공유하기</button>
-    <button id="btnTop">처음으로</button>
+    <button id="btnTop">맨 위로</button>
   </div>
 
   <p class="note">
@@ -203,6 +210,8 @@
     측정 영상은 부스 기기 안에서만 처리되어 <strong>저장·전송되지 않았습니다.</strong>
     이 페이지는 점수만 주소에 담아 보여주며, 아무 정보도 수집하지 않습니다.
   </p>
+
+  <p class="homelink"><a href="../">거북목 측정 홈으로 &rarr;</a></p>
 </div>
 
 <div id="toast"></div>
