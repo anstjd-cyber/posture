@@ -33,6 +33,10 @@
     --primary-40:#4c87f6; --primary-50:#256ef4; --primary-60:#0b50d0;
     --point-5:#fbeff0; --point-10:#f5d6d9; --point-50:#d63d4a; --point-60:#ab2b36;
     --success-30:#7ec88e; --success-40:#3fa654; --success-50:#228738;
+    /* 등급 색 — 띠는 결과 페이지와 같은 원색, 글자는 흰 배경에서 읽히도록 진하게 */
+    --gA-bar:#256ef4; --gB-bar:#5e9c1e; --gC-bar:#c98a06; --gD-bar:#e0702a; --gE-bar:#d8484e;
+    --gA-txt:#0b50d0; --gB-txt:#466f17; --gC-txt:#845b04; --gD-txt:#a34c15; --gE-txt:#b8343a;
+
 
     /* 의미 기반 토큰 */
     --bg:var(--gray-5);        --surface:var(--gray-0);
@@ -59,6 +63,9 @@
       --accent-soft:#18243a;
       --warn:#e0858c; --warn-text:#f5d6d9; --warn-soft:#2a1719;
       --accent-green:var(--success-30);
+      --gA-bar:#86aff9; --gB-bar:#a3e635; --gC-bar:#fbbf24; --gD-bar:#fb923c; --gE-bar:#f87171;
+      --gA-txt:#86aff9; --gB-txt:#a3e635; --gC-txt:#fbbf24; --gD-txt:#fb923c; --gE-txt:#f87171;
+
     }
   }
 
@@ -141,7 +148,19 @@
     transition:background-color .12s, color .12s;
   }
   .list a:last-child{border-bottom:0}
-  .list a .sub{font-weight:400;color:var(--text-subtle);font-size:15px}
+  /* 등급마다 왼쪽 띠와 글자 색을 달리해, 목록 자체가 초록→빨강 단계로 읽히게 한다 */
+  .list a{border-left:3px solid transparent}
+  .list a.gA{border-left-color:var(--gA-bar)} .list a.gA .gr{color:var(--gA-txt)}
+  .list a.gB{border-left-color:var(--gB-bar)} .list a.gB .gr{color:var(--gB-txt)}
+  .list a.gC{border-left-color:var(--gC-bar)} .list a.gC .gr{color:var(--gC-txt)}
+  .list a.gD{border-left-color:var(--gD-bar)} .list a.gD .gr{color:var(--gD-txt)}
+  .list a.gE{border-left-color:var(--gE-bar)} .list a.gE .gr{color:var(--gE-txt)}
+  /* 등급·점수·이름을 각각 고정폭 칸으로 둬서 행마다 세로줄이 맞도록 한다.
+     한 덩어리로 두면 '81~100점'과 '0~20점'의 길이 차이만큼 이름이 밀린다. */
+  .list a .gr{flex:none;min-width:4.3em}
+  .list a .rng{flex:none;min-width:5.2em;font-weight:400;color:var(--text-subtle);
+    font-size:15px;font-variant-numeric:tabular-nums}
+  .list a .nm{font-weight:400;color:var(--text-subtle);font-size:15px}
   .list a .go{margin-left:auto;flex:none;width:18px;height:18px;color:var(--gray-50)}
 
   /* 안내 상자 */
@@ -157,8 +176,8 @@
   .notice p + p{margin-top:0}
   .notice strong{color:var(--text);font-weight:700}
   .notice .ico{width:18px;height:18px;flex:none}
-  /* 안내 상자 다음 섹션 — 마진은 상쇄되므로 40px 를 직접 지정한다 */
-  .notice + .section{margin-top:40px}
+  /* 안내 상자 다음 섹션 — 마진은 상쇄되므로 값을 직접 지정한다 */
+  .notice + .section{margin-top:24px}
   .section:last-child{margin-bottom:0}
 
 
@@ -251,19 +270,19 @@
       <h2 id="preview-h">등급 기준</h2>
       <p class="guide">점수 20점마다 등급이 한 단계씩 바뀌어요. 눌러보면 그 등급의 결과 화면이 열립니다.</p>
       <div class="list">
-        <a href="result/#s=90&g=A&a=84.2&b=96">A 등급 <span class="sub">81~100점 · 아주 좋아요</span>
+        <a class="gA" href="result/#s=90&g=A&a=84.2&b=96"><span class="gr">A 등급</span><span class="rng">81~100점</span><span class="nm">아주 좋아요</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-        <a href="result/#s=70&g=B&a=76.6&b=88">B 등급 <span class="sub">61~80점 · 양호</span>
+        <a class="gB" href="result/#s=70&g=B&a=76.6&b=88"><span class="gr">B 등급</span><span class="rng">61~80점</span><span class="nm">양호</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-        <a href="result/#s=50&g=C&a=69.0&b=76">C 등급 <span class="sub">41~60점 · 주의</span>
+        <a class="gC" href="result/#s=50&g=C&a=69.0&b=76"><span class="gr">C 등급</span><span class="rng">41~60점</span><span class="nm">주의</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-        <a href="result/#s=30&g=D&a=61.4&b=62">D 등급 <span class="sub">21~40점 · 거북목 의심</span>
+        <a class="gD" href="result/#s=30&g=D&a=61.4&b=62"><span class="gr">D 등급</span><span class="rng">21~40점</span><span class="nm">거북목 의심</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-        <a href="result/#s=10&g=E&a=53.8&b=48">E 등급 <span class="sub">0~20점 · 거북목 심함</span>
+        <a class="gE" href="result/#s=10&g=E&a=53.8&b=48"><span class="gr">E 등급</span><span class="rng">0~20점</span><span class="nm">거북목 심함</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
       </div>
