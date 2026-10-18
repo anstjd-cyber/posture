@@ -37,6 +37,19 @@
   .step b{display:block;font-size:13px;color:var(--accent);letter-spacing:.1em;margin-bottom:6px}
   .step span{font-size:18px}
 
+  /* 시작 페이지로 돌아가는 링크.
+     부스에서는 앱이 서버 루트에 있어 상위 페이지가 없으므로 숨긴다(HAS_PARENT).
+     집계화면(D)을 뺀 모든 화면에 보이며, 측정화면에서는 우상단 품질 칩과
+     겹치지 않도록 .low 로 아래로 내린다. */
+  #homelink{position:fixed;z-index:6;top:18px;right:20px;display:none;
+    padding:10px 16px;border-radius:999px;border:1px solid #ffffff26;
+    background:#000000a6;color:var(--muted);text-decoration:none;
+    font-size:14px;font-weight:700;backdrop-filter:blur(6px)}
+  #homelink.on{display:block}
+  #homelink.low{top:84px;right:34px}   /* 품질 칩 아래 */
+  @media (hover:hover){ #homelink:hover{color:var(--fg);border-color:var(--accent)} }
+  #homelink:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
   /* ---------- 측정화면 ---------- */
   #view-measure{align-items:center;justify-content:center}
   #stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000}
@@ -182,6 +195,8 @@
     <div id="booterr"></div>
   </div>
 </div>
+
+<a id="homelink" href="../">← 시작 페이지</a>
 
 <!-- ============ 대기화면 ============ -->
 <section id="view-attract" class="view">
@@ -413,9 +428,18 @@ let assetMode = '-';   // '로컬' | 'CDN' — 오프라인 준비가 됐는지 
 
 const video = $('#video'), cv = $('#cv'), ctx = cv.getContext('2d');
 
+/* 부스 실행은 앱이 서버 루트에 있어 돌아갈 상위 페이지가 없다.
+   공개본(/posture/booth/)처럼 상위 경로가 있을 때만 시작 페이지 링크를 띄운다. */
+const HAS_PARENT = /^https?:$/.test(location.protocol) &&
+                   location.pathname.replace(/[^/]*$/, '') !== '/';
+
 function setView(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id===id));
+  const hl = $('#homelink');
+  hl.classList.toggle('on', HAS_PARENT && id!=='view-dashboard');
+  hl.classList.toggle('low', id==='view-measure');
 }
+
 function setState(s){
   st = s; tMark = performance.now(); held = 0; lost = 0; absent = 0;
   $('#bigcount').classList.toggle('on', s===ST.COUNT);
