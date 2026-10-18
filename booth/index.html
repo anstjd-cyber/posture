@@ -9,7 +9,7 @@
     --bg:#0b1020; --bg2:#141b33;
     --fg:#eef2ff; --muted:#93a0c8;
     --accent:#38bdf8;
-    --gA:#34d399; --gB:#fbbf24; --gC:#fb923c; --gD:#f87171;
+    --gA:#34d399; --gB:#a3e635; --gC:#fbbf24; --gD:#fb923c; --gE:#f87171;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0}
@@ -90,7 +90,7 @@
   .gradeName{font-size:clamp(22px,2.6vw,34px);font-weight:800;margin-top:10px}
   .gradeDesc{color:var(--muted);font-size:17px;margin-top:10px;line-height:1.6}
   .meter{height:14px;border-radius:99px;overflow:hidden;
-    background:linear-gradient(90deg,var(--gD),var(--gC) 38%,var(--gB) 62%,var(--gA))}
+    background:linear-gradient(90deg,var(--gE),var(--gD) 25%,var(--gC) 50%,var(--gB) 75%,var(--gA))}
   .meterwrap{position:relative;margin:30px 0 8px}
   .meterpin{position:absolute;top:-8px;width:4px;height:30px;background:#fff;border-radius:3px;
     box-shadow:0 0 0 3px #141b33;transform:translateX(-50%);transition:left .6s cubic-bezier(.2,.8,.2,1)}
@@ -326,7 +326,6 @@ const CFG_KEY='tnb.cfg', REC_KEY='tnb.records';
 const CFG_DEFAULT = {
   angleMin: 50,          // 0점에 해당하는 목 각도
   angleMax: 88,          // 100점에 해당하는 목 각도
-  gradeA: 78, gradeB: 70, gradeC: 60,   // 등급 경계 (각도, °)
   sideViewMax: 0.50,     // 측면 판정: 어깨폭/목머리길이 비율 상한
   frontViewMin: 0.90,    // 정면 판정: 같은 비율 하한
   gateMs: 1200,          // 올바른 자세 유지 시간 → 카운트다운 진입
@@ -358,12 +357,16 @@ const todayRecs = () => { const k=dayKey(Date.now()); return loadRecs().filter(r
 
 /* --------------------------------------------------------------- 등급 */
 const GRADES = {
-  A:{name:'양호', color:'var(--gA)', desc:'목이 어깨 위에 잘 정렬되어 있어요. 지금 자세를 유지해 주세요.'},
-  B:{name:'주의', color:'var(--gB)', desc:'아직 괜찮지만 머리가 조금 앞으로 나와 있어요. 한 시간에 한 번씩 턱을 뒤로 당겨주세요.'},
-  C:{name:'거북목 의심', color:'var(--gC)', desc:'머리가 어깨보다 상당히 앞에 있어요. 모니터를 눈높이로 올리고 턱당기기 운동을 추천합니다.'},
-  D:{name:'거북목 심함', color:'var(--gD)', desc:'목에 부담이 큰 자세예요. 작업 환경을 점검하고 전문가 상담을 고려해 보세요.'}
+  A:{min:81, name:'아주 좋아요', color:'var(--gA)', desc:'목이 어깨 위에 아주 잘 얹혀 있어요. 지금 자세를 그대로 유지해 주세요.'},
+  B:{min:61, name:'양호', color:'var(--gB)', desc:'대체로 좋은 자세예요. 머리가 아주 조금 앞으로 나와 있으니 가끔 턱을 당겨주세요.'},
+  C:{min:41, name:'주의', color:'var(--gC)', desc:'머리가 조금 앞으로 나와 있어요. 한 시간에 한 번씩 턱을 뒤로 당겨주세요.'},
+  D:{min:21, name:'거북목 의심', color:'var(--gD)', desc:'머리가 어깨보다 상당히 앞에 있어요. 모니터를 눈높이로 올리고 턱당기기 운동을 추천합니다.'},
+  E:{min:0,  name:'거북목 심함', color:'var(--gE)', desc:'목에 부담이 큰 자세예요. 작업 환경을 점검하고 전문가 상담을 고려해 보세요.'}
 };
-const gradeOf = a => a>=CFG.gradeA ? 'A' : a>=CFG.gradeB ? 'B' : a>=CFG.gradeC ? 'C' : 'D';
+/* 등급은 점수를 20점 단위로 자른 구간이다. 예전에는 각도 임계값으로 따로 판정해서
+   점수와 등급이 서로 어긋나 보였다(88점인데 A가 아닌 식). 이제 점수 하나에서 끌어낸다. */
+const GRADE_KEYS = ['A','B','C','D','E'];
+const gradeOf = score => GRADE_KEYS.find(k => score >= GRADES[k].min) || 'E';
 const scoreOf = a => Math.round(clamp((a-CFG.angleMin)/(CFG.angleMax-CFG.angleMin), 0, 1) * 100);
 
 const BALANCE = [
@@ -661,7 +664,7 @@ function draw(m, q){
 async function showResult(side, front, save = true){
   const angle = side.angle;
   const score = scoreOf(angle);
-  const grade = gradeOf(angle);
+  const grade = gradeOf(score);
   const bal = balanceScore(front.shTilt, front.hdTilt, front.shiftPct);
 
   const rec = {ts:Date.now(), angle:+angle.toFixed(2), score, grade, balance:bal,
@@ -762,14 +765,14 @@ function renderDash(){
   const n = recs.length;
   const avg = n ? Math.round(recs.reduce((s,r)=>s+r.score,0)/n) : 0;
   const ang = n ? (recs.reduce((s,r)=>s+r.angle,0)/n) : 0;
-  const risk = n ? Math.round(recs.filter(r=>r.grade==='C'||r.grade==='D').length/n*100) : 0;
+  const risk = n ? Math.round(recs.filter(r=>r.grade==='D'||r.grade==='E').length/n*100) : 0;
   $('#dN').textContent = n;
   $('#dAvg').textContent = avg;
   $('#dAng').textContent = ang.toFixed(1);
   $('#dRisk').textContent = risk;
 
-  const counts = {A:0,B:0,C:0,D:0};
-  recs.forEach(r=>counts[r.grade]++);
+  const counts = {A:0,B:0,C:0,D:0,E:0};
+  recs.forEach(r=>{ if(counts[r.grade]!==undefined) counts[r.grade]++; });
   const max = Math.max(1, ...Object.values(counts));
   $('#dDist').innerHTML = Object.entries(counts).map(([k,v])=>`
     <div class="distcol">
@@ -808,7 +811,7 @@ function updateCalib(m, q){
       row('중심 치우침', `${m.shiftPct.toFixed(2)}%`) +
       row('가시성 (어깨/코)', m.conf.toFixed(2)) +
       row('귀 가시성', m.earVis.toFixed(2)) +
-      row('→ 점수 / 등급', `${scoreOf(m.angle)}점 · ${gradeOf(m.angle)}`)
+      row('→ 점수 / 등급', `${scoreOf(m.angle)}점 · ${gradeOf(scoreOf(m.angle))}`)
     ) : row('랜드마크', '없음')) +
     row('수집 샘플', `${samples.length}개`) +
     row('측면 임계 / 정면 임계', `${CFG.sideViewMax} / ${CFG.frontViewMin}`) +
@@ -820,10 +823,6 @@ const OP_FIELDS = [
   ['점수 환산', [
     ['angleMin','0점 각도 (°)','number'],
     ['angleMax','100점 각도 (°)','number']]],
-  ['등급 경계 (각도 °)', [
-    ['gradeA','A 양호 ≥','number'],
-    ['gradeB','B 주의 ≥','number'],
-    ['gradeC','C 의심 ≥','number']]],
   ['자세 판정', [
     ['sideViewMax','측면 비율 ≤','number'],
     ['frontViewMin','정면 비율 ≥','number'],
@@ -1022,7 +1021,7 @@ window.__tnbMetrics = (lm, W = cv.width || 1280, H = cv.height || 720) => metric
 window.__tnbPreview = (angle = 72, shTilt = 2.1) => {
   clearTimeout(resultTimer);
   showResult({angle, fwdRatio:0.4, n:52}, {shTilt, hdTilt:1.4, shiftPct:-3.2, n:49}, false);
-  return {angle, score:scoreOf(angle), grade:gradeOf(angle)};
+  return {angle, score:scoreOf(angle), grade:gradeOf(scoreOf(angle))};
 };
 
 $('#view-attract').addEventListener('click', ()=>{ if(st===ST.IDLE) startRun(); });

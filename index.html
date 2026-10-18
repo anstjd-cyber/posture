@@ -32,6 +32,7 @@
     --primary-5:#ecf2fe;  --primary-10:#d8e5fd; --primary-30:#86aff9;
     --primary-40:#4c87f6; --primary-50:#256ef4; --primary-60:#0b50d0;
     --point-5:#fbeff0; --point-10:#f5d6d9; --point-50:#d63d4a; --point-60:#ab2b36;
+    --success-30:#7ec88e; --success-40:#3fa654; --success-50:#228738;
 
     /* 의미 기반 토큰 */
     --bg:var(--gray-5);        --surface:var(--gray-0);
@@ -41,6 +42,7 @@
     --accent:var(--primary-50); --accent-strong:var(--primary-60);
     --accent-soft:var(--primary-5);
     --warn:var(--point-50); --warn-text:var(--point-60); --warn-soft:var(--point-5);
+    --accent-green:var(--success-50);
 
     /* KRDS radius 토큰 (1rem = 10px 기준) */
     --r-s:4px; --r-m:6px; --r-l:10px;
@@ -56,6 +58,7 @@
       --accent:var(--primary-40); --accent-strong:var(--primary-30);
       --accent-soft:#18243a;
       --warn:#e0858c; --warn-text:#f5d6d9; --warn-soft:#2a1719;
+      --accent-green:var(--success-30);
     }
   }
 
@@ -86,13 +89,18 @@
   main{padding:40px 0 56px}
 
   h1{                                              /* KRDS heading xlarge */
-    font-size:clamp(28px,6.4vw,40px); font-weight:700; line-height:1.5;
-    margin:0 0 10px; letter-spacing:-.01em;
+    font-size:clamp(28px,6.6vw,40px); font-weight:800; line-height:1.4;
+    margin:0 0 14px; letter-spacing:-.02em;
   }
-  .lead{font-size:19px;color:var(--text-subtle);margin:0 0 32px}  /* body large */
+  /* 목을 앞으로 뺀 거북이 — 제목과 같은 줄에 흐르도록 inline 으로 둔다 */
+  .turtle{width:1.95em;height:auto;vertical-align:-.2em;margin-left:.16em}
+  /* 앞 두 줄: KRDS body large 19px, 본문색 */
+  .lead{font-size:19px;color:var(--text);margin:0 0 10px;font-weight:500}
+  /* 마지막 줄: 한 단계 작은 body medium 17px, KRDS point 색 */
+  .lead-warn{font-size:17px;color:var(--warn-text);margin:0 0 32px;font-weight:600}
 
   /* 선택 카드 */
-  .cards{list-style:none;margin:0 0 40px;padding:0;display:grid;gap:12px}
+  .cards{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:12px}
   .card{
     display:block;text-decoration:none;color:inherit;background:var(--surface);
     border:1px solid var(--line);border-radius:var(--r-m);padding:22px 20px;
@@ -103,6 +111,7 @@
     width:20px;height:20px;transition:transform .12s}
   .card .d{font-size:15px;color:var(--text-subtle);margin-top:8px}
   .card.lead-card{border-left:4px solid var(--accent)}
+  .card.stretch-card{border-left:4px solid var(--accent-green)}
   .badge{
     display:inline-block;background:var(--accent-soft);color:var(--text-primary);
     font-size:13px;font-weight:700;padding:3px 9px;border-radius:var(--r-s);
@@ -111,6 +120,7 @@
   @media (hover:hover){
     .card:hover{border-color:var(--accent);background:var(--accent-soft)}
     .card:hover .t .go{transform:translateX(3px)}
+    .card.stretch-card:hover{border-left-color:var(--accent-green)}
     .list a:hover{background:var(--accent-soft);color:var(--text-primary)}
   }
   .card:active{background:var(--primary-10)}
@@ -118,6 +128,7 @@
   /* 제목 + 목록 */
   h2{font-size:19px;font-weight:700;margin:0 0 12px}  /* KRDS heading small */
   .section{margin-bottom:40px}
+  .guide{font-size:15px;color:var(--text-subtle);margin:-6px 0 12px}
   .list{background:var(--surface);border:1px solid var(--line);
     border-radius:var(--r-m);overflow:hidden}
   .list a{
@@ -137,8 +148,10 @@
   .notice h3{margin:0 0 6px;font-size:17px;font-weight:700;
     display:flex;align-items:center;gap:7px}
   .notice.warn h3{color:var(--warn-text)}
+  .notice.warn p{color:var(--warn-text)}   /* 크기는 그대로, 색만 */
   .notice p{margin:0;font-size:15px;color:var(--text-subtle);line-height:1.6}
-  .notice p + p{margin-top:8px}
+  /* 문단 사이 추가 여백 없이, 줄바꿈과 같은 간격으로 이어지게 둔다 */
+  .notice p + p{margin-top:0}
   .notice strong{color:var(--text);font-weight:700}
   .notice .ico{width:18px;height:18px;flex:none}
   /* 안내 상자 다음 섹션 — 마진은 상쇄되므로 40px 를 직접 지정한다 */
@@ -169,52 +182,57 @@
       <path d="M12 3a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4Z"/>
       <path d="M5 21v-1a7 7 0 0 1 7-7h0a7 7 0 0 1 7 7v1"/>
     </svg>
-    <p class="service">거북목 측정 체험<span>자세 측정 부스</span></p>
+    <p class="service">거북목 측정 체험<span>바이브코딩 체험 부스</span></p>
   </div>
 </header>
 
 <main id="main">
   <div class="inner">
-    <h1>목이 앞으로 나왔는지<br>재어 봅니다</h1>
-    <p class="lead">웹캠으로 목 각도를 측정하고 자세에 맞는 스트레칭을 안내합니다.
-      모든 처리는 기기 안에서 끝납니다.</p>
+    <h1>혹시 내 목도 거북목?<svg class="turtle" viewBox="0 12 58 32" aria-hidden="true">
+        <rect x="17" y="32" width="9" height="11" rx="4.5" fill="#5fb894"/>
+        <rect x="35" y="32" width="9" height="11" rx="4.5" fill="#5fb894"/>
+        <path d="M47 31l8-2-2 6z" fill="#5fb894"/>
+        <path d="M18 33C12 32 9 29 8.5 22" stroke="#5fb894" stroke-width="9"
+              stroke-linecap="round" fill="none"/>
+        <path d="M12 34a20 14 0 0 1 40 0z" fill="#2f7d5c"/>
+        <path d="M22 34a10 9 0 0 1 20 0z" fill="#48a07a"/>
+        <circle cx="8" cy="20" r="7" fill="#6cc3a1"/>
+        <circle cx="5.6" cy="18.4" r="1.6" fill="#13361f"/>
+      </svg></h1>
+    <p class="lead">거북목인지 궁금하다면 카메라 앞에 서 보세요!<br>
+      AI가 내 목의 기울기를 살펴보고, 나에게 딱 맞는 스트레칭을 알려줄게요.</p>
+    <p class="lead-warn">걱정 마세요! 모든 과정은 내 기기 안에서 안전하게 진행돼요.</p>
 
     <ul class="cards">
       <li>
         <a class="card lead-card" href="booth/">
-          <span class="badge">카메라 필요</span>
-          <span class="t">측정해보기
+          <span class="badge">카메라로 자세 체크 📷</span>
+          <span class="t">내 자세 확인하기
             <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M5 12h14M13 6l6 6-6 6"/>
             </svg>
           </span>
-          <span class="d">옆모습과 정면을 차례로 찍어 거북목 점수를 냅니다. 약 1분 걸립니다.</span>
+          <span class="d">카메라로 옆모습과 정면을 살펴보고, 내 목의 자세 점수를 알아봐요! 약 1분이면 충분해요.</span>
         </a>
       </li>
       <li>
-        <a class="card" href="result/">
-          <span class="t">스트레칭 가이드
+        <a class="card stretch-card" href="result/">
+          <span class="t">목과 어깨를 위한 스트레칭 🌿
             <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M5 12h14M13 6l6 6-6 6"/>
             </svg>
           </span>
-          <span class="d">측정하지 않고 스트레칭 동작과 작업 환경 체크리스트만 볼 수 있습니다.</span>
+          <span class="d">자세 측정 없이도 괜찮아요! 간단한 스트레칭과 바른 자세를 위한 꿀팁을 만나보세요.</span>
         </a>
       </li>
     </ul>
 
     <div class="notice">
-      <h3>
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-        </svg>
-        촬영 영상은 저장되지 않습니다
-      </h3>
-      <p>측정은 기기 안에서만 처리되며 영상이 서버로 올라가지 않습니다.
-        <strong>수집하는 개인정보가 없습니다.</strong></p>
+      <h3>내 영상은 안전하게 🔒</h3>
+      <p>촬영한 영상은 저장되지 않으며, 모든 측정은 내 기기에서만 진행돼요.</p>
+      <p>영상이나 개인정보는 서버로 전송되지 않아요.</p>
     </div>
 
     <div class="notice warn">
@@ -223,26 +241,29 @@
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/>
         </svg>
-        의료기기가 아닙니다
+        측정 전 알아두세요
       </h3>
-      <p>이 측정은 <strong>진단 목적으로 사용할 수 없습니다.</strong>
-        웹캠으로 어깨와 귀의 위치를 추정한 참고용 수치입니다.</p>
-      <p>목·어깨 통증이나 팔 저림이 있다면 정형외과 또는 재활의학과 진료를 받아보세요.</p>
+      <p>이 서비스는 내 자세를 살펴보는 참고용 도구로, 의료기기나 진단을 대신하지 않아요.</p>
+      <p>목이나 어깨에 통증이 있거나 팔이 저리다면 의료 전문가와 상담해 주세요.</p>
     </div>
 
     <section class="section" aria-labelledby="preview-h">
-      <h2 id="preview-h">결과 화면 미리보기</h2>
+      <h2 id="preview-h">등급 기준</h2>
+      <p class="guide">점수 20점마다 등급이 한 단계씩 바뀌어요. 눌러보면 그 등급의 결과 화면이 열립니다.</p>
       <div class="list">
-        <a href="result/#s=88&g=A&a=82.4&b=96">A 등급 <span class="sub">양호 · 88점</span>
+        <a href="result/#s=90&g=A&a=84.2&b=96">A 등급 <span class="sub">81~100점 · 아주 좋아요</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-        <a href="result/#s=58&g=B&a=72.0&b=83">B 등급 <span class="sub">주의 · 58점</span>
+        <a href="result/#s=70&g=B&a=76.6&b=88">B 등급 <span class="sub">61~80점 · 양호</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-        <a href="result/#s=30&g=C&a=61.4&b=55">C 등급 <span class="sub">거북목 의심 · 30점</span>
+        <a href="result/#s=50&g=C&a=69.0&b=76">C 등급 <span class="sub">41~60점 · 주의</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
-        <a href="result/#s=8&g=D&a=53.1&b=41">D 등급 <span class="sub">거북목 심함 · 8점</span>
+        <a href="result/#s=30&g=D&a=61.4&b=62">D 등급 <span class="sub">21~40점 · 거북목 의심</span>
+          <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a href="result/#s=10&g=E&a=53.8&b=48">E 등급 <span class="sub">0~20점 · 거북목 심함</span>
           <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
       </div>
