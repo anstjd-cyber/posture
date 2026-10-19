@@ -110,9 +110,10 @@
   .ex{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:12px}
   .ex:last-child{margin-bottom:0}
   .exhead{display:flex;align-items:flex-start;gap:12px}
+  /* 운동 순서 번호 — 그림 대신 번호만 둔다. 동작 설명은 제목·단계·주의가 이미 한다. */
   .exart{flex:none;width:56px;height:56px;border-radius:var(--r-m);background:var(--bg);
-    display:grid;place-items:center}
-  .exart svg{width:44px;height:44px;display:block}
+    display:grid;place-items:center;color:var(--accent-text);
+    font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
   .extitle{flex:1;min-width:0}
   .extitle h3{margin:0;font-size:17px;font-weight:700}
   .extitle .dose{color:var(--accent-text);font-size:13px;font-weight:700;margin-top:2px}
@@ -148,9 +149,6 @@
   .chk li.on .t{color:var(--muted);text-decoration:line-through}
 
   /* ---------- 기타 ---------- */
-  .faq p{margin:0 0 12px;font-size:15px;line-height:1.6}
-  .faq p:last-child{margin-bottom:0}
-  .faq b{font-weight:700}
   .actions{display:flex;gap:10px;margin:0 0 12px}
   .actions button{flex:1;border:1px solid var(--line);border-radius:var(--r-m);padding:14px;
     font:inherit;font-weight:700;font-size:15px;cursor:pointer;background:var(--card);color:var(--fg)}
@@ -183,7 +181,7 @@
       <path d="M12 3a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4Z"/>
       <path d="M5 21v-1a7 7 0 0 1 7-7h0a7 7 0 0 1 7 7v1"/>
     </svg>
-    <p class="service">거북목 측정 체험<span>결과</span></p>
+    <p class="service">거북목 자세 측정<span>결과</span></p>
   </div>
 </header>
 
@@ -191,9 +189,9 @@
 
   <!-- 측정값 없이 열린 경우 -->
   <section class="card noparam" id="noparam" hidden>
-    <h2>측정 결과가 없어요</h2>
-    <p>부스에서 측정을 하고 화면에 나온 QR을 스캔하면 내 점수가 함께 표시됩니다.
-       아래 스트레칭 가이드는 그대로 보실 수 있어요.</p>
+    <h2>아직 측정 결과가 없습니다</h2>
+    <p>측정을 완료한 후 화면에 표시된 QR코드를 스캔하면 나의 자세 점수를 확인할 수 있습니다.</p>
+    <p>측정 전에도 아래의 스트레칭 가이드를 이용할 수 있습니다.</p>
   </section>
 
   <!-- 점수 -->
@@ -220,7 +218,7 @@
 
   <!-- 맞춤 스트레칭 -->
   <section class="card">
-    <h2><span class="n">2</span>내게 맞는 스트레칭</h2>
+    <h2><span class="n">2</span>목과 어깨를 위한 스트레칭</h2>
     <div class="plan" id="plan"></div>
     <div id="exercises"></div>
   </section>
@@ -232,17 +230,6 @@
   </section>
 
   <!-- 설명 -->
-  <section class="card faq">
-    <h2><span class="n">4</span>거북목이 뭔가요?</h2>
-    <p>머리가 어깨보다 <b>앞으로 나온 상태</b>를 말합니다. 목이 거북처럼 앞으로 빠져 보여서
-       붙은 이름이고, 의학적으로는 <b>전방머리자세(Forward Head Posture)</b>라고 합니다.</p>
-    <p>머리는 몸에서 꽤 무거운 부위입니다. 어깨 위에 똑바로 얹혀 있을 때는 뼈가 무게를
-       받쳐주지만, 앞으로 나오면 그 무게를 <b>목과 어깨 근육이 계속 붙잡고</b> 있어야 합니다.
-       그래서 목 뒤가 뻣뻣해지고 어깨가 아프고, 두통이 생기기도 합니다.</p>
-    <p>원인은 대개 생활 습관입니다. <b>낮은 모니터, 고개 숙여 보는 휴대폰, 오래 앉아 있기</b>가
-       가장 흔합니다. 반대로 말하면 환경과 습관을 바꾸면 좋아질 수 있다는 뜻입니다.</p>
-  </section>
-
   <div class="actions">
     <button class="p" id="btnShare">결과 공유하기</button>
     <button id="btnTop">맨 위로</button>
@@ -360,6 +347,17 @@
     drawPosture(angle, g.color);
   }
 
+  /* 섹션 번호는 화면에 실제로 보이는 것만 세어 1부터 매긴다.
+     측정값 없이 열면 '측정된 내 자세' 가 빠지므로 숫자를 고정해 두면 2번부터 시작해 버린다. */
+  (function renumber(){
+    let i = 0;
+    document.querySelectorAll('section.card').forEach(sec => {
+      const n = sec.querySelector('h2 .n');
+      if(!n || sec.hidden) return;
+      n.textContent = ++i;
+    });
+  })();
+
   /* ------------------------------------------------ 자세 그림
      측정된 각도를 그대로 그린다. 어깨를 꼭짓점으로 두고, 각도가 작을수록
      머리가 앞으로 나온 모습이 된다. 점선은 '머리가 어깨 바로 위'인 기준선. */
@@ -412,39 +410,20 @@
   }
 
   /* ------------------------------------------------ 스트레칭 */
-  const ART = {
-    chin: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
-             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
-             <circle cx="30" cy="15" r="7"/><path d="M30 22v7M30 29H20"/>
-             <path d="M22 11h-9"/><path d="M17 7l-5 4 5 4"/></svg>`,
-    neck: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
-             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
-             <circle cx="20" cy="14" r="7"/><path d="M22 21l3 9M25 30H14"/>
-             <path d="M30 10c5 2 6 7 4 11"/><path d="M36 20l-2.5-1 1 2.6"/></svg>`,
-    chest:`<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
-             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
-             <circle cx="24" cy="12" r="6"/><path d="M24 18v12"/>
-             <path d="M24 22l-9-5M24 22l9-5"/><path d="M11 13l4 4-4 1M37 13l-4 4 4 1"/></svg>`,
-    blade:`<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4"
-             stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
-             <circle cx="24" cy="12" r="6"/><path d="M24 18v13"/>
-             <path d="M16 23h-6M32 23h6"/><path d="M13 20l-3 3 3 3M35 20l3 3-3 3"/></svg>`
-  };
-
   const EXERCISES = {
     chin:{
-      art:ART.chin, title:'턱 당기기', dose:'5초 유지 × 10회',
-      timer:{sec:5, label:'5초 유지'},
+      title:'턱 당기기', dose:'5초 유지',
+      timer:{sec:5, label:'스트레칭 시작'},
       steps:[
         '똑바로 앉거나 선 상태에서 정면을 봅니다.',
         '고개를 숙이지 말고, <b>턱을 목 쪽으로 수평하게</b> 당깁니다. 뒤통수가 뒤로 밀리는 느낌입니다.',
         '목 뒤가 길어지는 느낌으로 5초 유지한 뒤 천천히 풉니다.'
       ],
-      warn:'거북목에 가장 직접적인 운동입니다. 고개를 아래로 숙이면 효과가 없습니다.'
+      warn:'고개를 숙이지 않고 턱을 수평으로 당기는 것이 중요합니다.'
     },
     neck:{
-      art:ART.neck, title:'목 옆·뒤 늘리기', dose:'20초 × 좌우 각 2회',
-      timer:{sec:20, label:'20초 유지'},
+      title:'목 옆·뒤 늘리기', dose:'20초 (좌우 각 1회)',
+      timer:{sec:20, label:'스트레칭 시작'},
       steps:[
         '한쪽 어깨를 아래로 내린 상태를 유지합니다.',
         '반대쪽 손으로 머리를 잡고 <b>천천히</b> 옆으로 당겨 목 옆을 늘립니다.',
@@ -453,18 +432,18 @@
       warn:'반동을 주거나 세게 당기지 마세요. 늘어나는 느낌까지만입니다.'
     },
     chest:{
-      art:ART.chest, title:'가슴 열기', dose:'30초 × 2회',
-      timer:{sec:30, label:'30초 유지'},
+      title:'가슴 열기', dose:'30초',
+      timer:{sec:30, label:'스트레칭 시작'},
       steps:[
-        '문틀이나 벽 모서리에 양 팔꿈치를 어깨 높이로 댑니다.',
-        '한 발을 앞으로 내밀어 <b>가슴 앞쪽이 늘어나는</b> 지점까지 체중을 옮깁니다.',
-        '허리를 젖히지 말고 30초 유지합니다.'
+        '바르게 서서 양손을 등 뒤로 보내 <b>깍지</b>를 낍니다.',
+        '팔꿈치를 편 채 깍지 낀 손을 <b>아래로 쭉 내리며 가슴을 엽니다</b>. 어깨가 뒤로 열리는 느낌입니다.',
+        '허리를 젖히지 말고 30초 유지한 뒤 천천히 풉니다.'
       ],
-      warn:'거북목이면 가슴 근육도 함께 짧아져 있어, 목만 풀면 금방 되돌아갑니다.'
+      warn:'거북목이면 가슴 근육도 함께 짧아져 있어, 목만 풀면 금방 되돌아갑니다. 손이 등 뒤에서 닿지 않으면 수건 양 끝을 잡고 하세요.'
     },
     blade:{
-      art:ART.blade, title:'견갑 모으기', dose:'5초 유지 × 10회',
-      timer:{sec:5, label:'5초 유지'},
+      title:'견갑 모으기', dose:'5초 유지',
+      timer:{sec:5, label:'스트레칭 시작'},
       steps:[
         '팔을 편하게 내리고 어깨를 <b>뒤쪽 아래로</b> 모읍니다.',
         '양쪽 날개뼈 사이를 조이는 느낌으로 5초 유지합니다.',
@@ -493,8 +472,8 @@
              '하루 8시간의 자세를 이기는 스트레칭은 없습니다. ' +
              '통증이나 팔 저림이 있다면 진료를 받아보세요.' },
     none:{ list:['chin','neck','chest','blade'],
-        text:'거북목 예방과 개선에 가장 널리 쓰이는 네 가지입니다. ' +
-             '이 중 <b>턱 당기기</b>가 가장 직접적인 운동입니다.' }
+        text:'목과 어깨의 긴장을 완화하고 바른 자세를 유지하는 데 도움이 되는 스트레칭을 소개합니다.<br>' +
+             '먼저 <b>턱 당기기</b>부터 시작해 보세요.' }
   };
 
   const plan = PLANS[hasResult ? grade : 'none'];
@@ -503,9 +482,9 @@
     const e = EXERCISES[key];
     return `<div class="ex">
       <div class="exhead">
-        <div class="exart">${e.art}</div>
+        <div class="exart">${i+1}</div>
         <div class="extitle">
-          <h3>${i+1}. ${e.title}</h3>
+          <h3>${e.title}</h3>
           <div class="dose">${e.dose}</div>
         </div>
       </div>
@@ -530,7 +509,7 @@
     const stop = (done) => {
       cancelAnimationFrame(raf); raf = null;
       btn.classList.remove('run');
-      btn.textContent = done ? '다시 하기' : `${sec}초 유지`;
+      btn.textContent = done ? '다시 하기' : '스트레칭 시작';
       bar.style.width = done ? '100%' : '0';
       num.textContent = done ? '완료!' : sec + 's';
       if(done) setTimeout(()=>{ if(!raf){ bar.style.width='0'; num.textContent=sec+'s'; } }, 2500);
