@@ -107,8 +107,9 @@
   /* 세 줄의 간격을 같게 하려고 줄 간격을 길이로 못 박는다.
      1.5 같은 단위 없는 값은 비율로 상속돼서, 글자가 작은 마지막 줄만 좁아진다. */
   .lead{font-size:19px;line-height:28px;color:var(--text);margin:0 0 16px;font-weight:500}
-  /* 마지막 줄 — 한 단계 작은 17px, KRDS point 색 */
-  .lead .safe{font-size:17px;color:var(--warn-text);font-weight:600}
+  /* 마지막 줄 — 글자 크기는 윗줄과 같게 둔다. 크기가 다르면 같은 줄 상자 안에서
+     글자가 1px 아래로 앉아 줄 간격이 어긋나 보인다. 색과 굵기로만 구분한다. */
+  .lead .safe{color:var(--warn-text);font-weight:700}
 
   /* 선택 카드 */
   .cards{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:12px}
