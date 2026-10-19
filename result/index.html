@@ -3,110 +3,144 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#256ef4">
 <title>내 거북목 결과</title>
 <meta name="description" content="부스에서 측정한 거북목 점수와 맞춤 스트레칭 가이드">
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
+  /* ---------------------------------------------------------------------
+     시작 페이지와 같은 KRDS 디자인 토큰·치수를 쓴다.
+     상자 반경 6px, 1px 테두리, 그림자 없음, 상자 간격 12px 로 통일.
+     --------------------------------------------------------------------- */
   :root{
-    --bg:#f6f7fb; --card:#ffffff; --fg:#141a2b; --muted:#687191;
-    --line:#e5e8f2; --accent:#2563eb; --accentSoft:#eaf0ff;
-    --gA:#0f9d6e; --gB:#5e9c1e; --gC:#c98a06; --gD:#e0702a; --gE:#d8484e;
-    --shadow:0 1px 2px rgba(20,26,43,.05), 0 8px 24px rgba(20,26,43,.06);
+    /* KRDS light 팔레트 */
+    --gray-0:#ffffff;  --gray-5:#f4f5f6;  --gray-10:#e6e8ea; --gray-20:#cdd1d5;
+    --gray-30:#b1b8be; --gray-50:#6d7882; --gray-70:#464c53; --gray-90:#1e2124;
+    --gray-95:#131416;
+    --primary-5:#ecf2fe; --primary-30:#86aff9; --primary-40:#4c87f6;
+    --primary-50:#256ef4; --primary-60:#0b50d0;
+
+    --bg:var(--gray-5);     --card:var(--gray-0);
+    --fg:var(--gray-90);    --muted:var(--gray-70);
+    --line:var(--gray-20);  --line-subtle:var(--gray-10);
+    --accent:var(--primary-50); --accent-text:var(--primary-60);
+    --accentSoft:var(--primary-5);
+
+    /* 등급 색 — 시작 페이지와 같은 세 벌(원색·글자·배경) */
+    --gA:#256ef4; --gB:#5e9c1e; --gC:#c98a06; --gD:#e0702a; --gE:#d8484e;
+    --gA-txt:#0b50d0; --gB-txt:#466f17; --gC-txt:#845b04; --gD-txt:#a34c15; --gE-txt:#b8343a;
+    --gA-soft:#ecf2fe; --gB-soft:#eef6e4; --gC-soft:#fdf3dc; --gD-soft:#fdeade; --gE-soft:#fbeff0;
+
+    --r-s:4px; --r-m:6px;
   }
+  /* KRDS 는 다크 테마를 정의하지 않는다. 시작 페이지와 같은 방식으로 회색·파랑 단계만 재배치했다. */
   @media (prefers-color-scheme:dark){
     :root{
-      --bg:#0b1020; --card:#151c31; --fg:#eef1fa; --muted:#98a2c4;
-      --line:#262f49; --accent:#60a5fa; --accentSoft:#1b2644;
-      --gA:#34d399; --gB:#a3e635; --gC:#fbbf24; --gD:#fb923c; --gE:#f87171;
-      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+      --bg:var(--gray-95);    --card:var(--gray-90);
+      --fg:var(--gray-5);     --muted:var(--gray-30);
+      --line:#464c53;         --line-subtle:#2b2f34;
+      --accent:var(--primary-40); --accent-text:var(--primary-30);
+      --accentSoft:#18243a;
+      --gA:#86aff9; --gB:#a3e635; --gC:#fbbf24; --gD:#fb923c; --gE:#f87171;
+      --gA-txt:#86aff9; --gB-txt:#a3e635; --gC-txt:#fbbf24; --gD-txt:#fb923c; --gE-txt:#f87171;
+      --gA-soft:#18243a; --gB-soft:#232d18; --gC-soft:#2e2715; --gD-soft:#2e2116; --gE-soft:#2a1719;
     }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0}
   body{
     background:var(--bg); color:var(--fg);
-    font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Segoe UI",system-ui,sans-serif;
-    line-height:1.65; -webkit-font-smoothing:antialiased;
+    font-family:"Pretendard Variable","Pretendard","Apple SD Gothic Neo",
+      "Malgun Gothic","Segoe UI",system-ui,sans-serif;
+    font-size:17px; line-height:1.5; -webkit-text-size-adjust:100%;
   }
-  .wrap{max-width:560px;margin:0 auto;padding:22px 16px 56px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;
-    padding:22px;margin-bottom:16px;box-shadow:var(--shadow)}
 
-  /* ---------- 헤더 ---------- */
-  .brand{display:flex;align-items:center;gap:9px;color:var(--muted);
-    font-size:13px;font-weight:700;letter-spacing:.02em;margin-bottom:16px;padding:0 4px}
-  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+  /* ---------- 머리말 (시작 페이지와 같은 띠) ---------- */
+  header{background:var(--card);border-bottom:1px solid var(--line)}
+  header .inner{max-width:680px;margin:0 auto;padding:0 20px;height:60px;
+    display:flex;align-items:center;gap:10px}
+  .mark{width:26px;height:26px;flex:none;color:var(--accent)}
+  .service{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .service span{color:var(--muted);font-weight:400;font-size:15px;margin-left:7px}
+
+  .wrap{max-width:680px;margin:0 auto;padding:20px 20px 48px}
+  /* 모든 상자는 같은 반경·테두리·여백·간격을 쓴다 */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-m);
+    padding:20px;margin-bottom:12px}
 
   /* ---------- 점수 ---------- */
-  .hero{text-align:center;padding:30px 22px 26px}
-  .tag{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.1em;
-    padding:7px 16px;border-radius:999px;color:#fff;margin-bottom:12px}
-  .score{font-size:84px;font-weight:900;line-height:.92;letter-spacing:-.045em;
+  .hero{text-align:center;padding:24px 20px 20px}
+  .tag{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.06em;
+    padding:4px 12px;border-radius:var(--r-s);margin-bottom:12px}
+  .score{font-size:72px;font-weight:800;line-height:1;letter-spacing:-.04em;
     font-variant-numeric:tabular-nums}
-  .score span{font-size:.28em;font-weight:700;color:var(--muted);letter-spacing:0;margin-left:3px}
-  .gname{font-size:25px;font-weight:800;margin-top:8px}
-  .gdesc{color:var(--muted);font-size:15.5px;margin-top:12px;text-align:left}
+  .score span{font-size:.3em;font-weight:700;color:var(--muted);letter-spacing:0;margin-left:4px}
+  .gname{font-size:24px;font-weight:800;margin-top:10px}
+  .gdesc{color:var(--muted);font-size:15px;line-height:1.6;margin-top:12px;text-align:left}
 
-  .meterwrap{position:relative;margin:26px 0 10px}
-  .meter{height:12px;border-radius:99px;
+  .meterwrap{position:relative;margin:24px 0 10px}
+  .meter{height:10px;border-radius:99px;
     background:linear-gradient(90deg,var(--gE),var(--gD) 25%,var(--gC) 50%,var(--gB) 75%,var(--gA))}
-  .pin{position:absolute;top:-7px;width:4px;height:26px;border-radius:3px;background:var(--fg);
+  .pin{position:absolute;top:-6px;width:4px;height:22px;border-radius:2px;background:var(--fg);
     transform:translateX(-50%);box-shadow:0 0 0 3px var(--card)}
-  .mlab{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;padding:0 1px}
+  .mlab{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;padding:0 1px}
 
   /* ---------- 자세 그림 ---------- */
   .figure{margin-top:4px}
   .figure svg{width:100%;height:auto;display:block;max-width:300px;margin:0 auto}
-  .figcap{text-align:center;color:var(--muted);font-size:13.5px;margin-top:6px}
+  .figcap{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
 
   /* ---------- 지표 ---------- */
-  h2{font-size:17px;margin:0 0 14px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
-  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--accentSoft);color:var(--accent);
-    font-size:12px;font-weight:900;display:grid;place-items:center;flex:none}
+  h2{font-size:19px;font-weight:700;margin:0 0 14px;letter-spacing:-.01em;
+    display:flex;align-items:center;gap:8px}
+  h2 .n{width:22px;height:22px;border-radius:var(--r-s);background:var(--accentSoft);
+    color:var(--accent-text);font-size:12px;font-weight:800;display:grid;place-items:center;flex:none}
   .kv{display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:12px 0;border-bottom:1px solid var(--line)}
+    padding:12px 0;border-bottom:1px solid var(--line-subtle)}
   .kv:last-child{border-bottom:0;padding-bottom:0}
-  .kv .k{color:var(--muted);font-size:14.5px}
-  .kv .v{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
-  .pill{font-size:13px;font-weight:800;padding:5px 12px;border-radius:999px;color:#fff}
+  .kv .k{color:var(--muted);font-size:15px}
+  .kv .v{font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+  .pill{font-size:13px;font-weight:700;padding:4px 12px;border-radius:var(--r-s)}
 
   /* ---------- 스트레칭 ---------- */
-  .plan{font-size:15.5px;background:var(--accentSoft);border-radius:14px;padding:14px 16px;
-    margin-bottom:18px}
-  .plan b{color:var(--accent)}
-  .ex{border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+  .plan{font-size:15px;line-height:1.6;background:var(--accentSoft);
+    border-radius:var(--r-m);padding:14px 16px;margin-bottom:12px}
+  .plan b{color:var(--accent-text)}
+  .ex{border:1px solid var(--line);border-radius:var(--r-m);padding:16px;margin-bottom:12px}
   .ex:last-child{margin-bottom:0}
   .exhead{display:flex;align-items:flex-start;gap:12px}
-  .exart{flex:none;width:58px;height:58px;border-radius:12px;background:var(--bg);
+  .exart{flex:none;width:56px;height:56px;border-radius:var(--r-m);background:var(--bg);
     display:grid;place-items:center}
-  .exart svg{width:46px;height:46px;display:block}
+  .exart svg{width:44px;height:44px;display:block}
   .extitle{flex:1;min-width:0}
-  .extitle h3{margin:0;font-size:16.5px;font-weight:800}
-  .extitle .dose{color:var(--accent);font-size:13.5px;font-weight:800;margin-top:2px}
-  .exbody{margin:12px 0 0;padding:0 0 0 19px;font-size:15px;color:var(--fg)}
+  .extitle h3{margin:0;font-size:17px;font-weight:700}
+  .extitle .dose{color:var(--accent-text);font-size:13px;font-weight:700;margin-top:2px}
+  .exbody{margin:12px 0 0;padding:0 0 0 19px;font-size:15px;line-height:1.6;color:var(--fg)}
   .exbody li{margin:5px 0}
-  .tip{display:flex;gap:9px;margin-top:12px;padding:11px 13px;border-radius:11px;
-    background:var(--bg);color:var(--muted);font-size:14px;line-height:1.55}
+  .tip{display:flex;gap:9px;margin-top:12px;padding:12px 14px;border-radius:var(--r-m);
+    background:var(--bg);color:var(--muted);font-size:14px;line-height:1.6}
   .tip::before{content:"!";flex:none;width:18px;height:18px;border-radius:50%;
-    background:var(--muted);color:var(--card);font-weight:900;font-size:12px;
+    background:var(--muted);color:var(--card);font-weight:800;font-size:12px;
     display:grid;place-items:center;margin-top:2px}
   .timer{display:flex;align-items:center;gap:12px;margin-top:14px}
   .timer button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--fg);
-    font:inherit;font-weight:800;font-size:14px;padding:10px 18px;border-radius:999px;cursor:pointer}
-  .timer button:active{transform:scale(.97)}
+    font:inherit;font-weight:700;font-size:14px;padding:10px 18px;border-radius:var(--r-m);
+    cursor:pointer}
+  .timer button:active{transform:scale(.98)}
   .timer button.run{background:var(--accent);color:#fff;border-color:transparent}
   .tbar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
   .tbar i{display:block;height:100%;width:0;background:var(--accent)}
-  .tnum{flex:none;font-variant-numeric:tabular-nums;font-weight:800;font-size:15px;
+  .tnum{flex:none;font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;
     color:var(--muted);min-width:42px;text-align:right}
 
   /* ---------- 체크리스트 ---------- */
   .chk{list-style:none;margin:0;padding:0}
-  .chk li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);
-    font-size:15px;cursor:pointer}
+  .chk li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;
+    border-bottom:1px solid var(--line-subtle);font-size:15px;line-height:1.6;cursor:pointer}
   .chk li:last-child{border-bottom:0;padding-bottom:0}
-  .chk .box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);
-    margin-top:2px;display:grid;place-items:center;transition:.15s}
+  .chk .box{flex:none;width:22px;height:22px;border-radius:var(--r-s);border:2px solid var(--line);
+    margin-top:2px;display:grid;place-items:center;transition:background-color .15s,border-color .15s}
   .chk .box svg{width:13px;height:13px;opacity:0;stroke:#fff;stroke-width:3.2;fill:none;
     stroke-linecap:round;stroke-linejoin:round}
   .chk li.on .box{background:var(--accent);border-color:var(--accent)}
@@ -114,35 +148,46 @@
   .chk li.on .t{color:var(--muted);text-decoration:line-through}
 
   /* ---------- 기타 ---------- */
-  .faq p{margin:0 0 12px;font-size:15px}
+  .faq p{margin:0 0 12px;font-size:15px;line-height:1.6}
   .faq p:last-child{margin-bottom:0}
-  .faq b{font-weight:800}
-  .actions{display:flex;gap:10px;margin:4px 0 16px}
-  .actions button{flex:1;border:0;border-radius:14px;padding:15px;font:inherit;font-weight:800;
-    font-size:15px;cursor:pointer;background:var(--card);color:var(--fg);border:1px solid var(--line)}
+  .faq b{font-weight:700}
+  .actions{display:flex;gap:10px;margin:0 0 12px}
+  .actions button{flex:1;border:1px solid var(--line);border-radius:var(--r-m);padding:14px;
+    font:inherit;font-weight:700;font-size:15px;cursor:pointer;background:var(--card);color:var(--fg)}
   .actions button.p{background:var(--accent);color:#fff;border-color:transparent}
-  .note{font-size:13px;color:var(--muted);text-align:center;padding:4px 10px 0;line-height:1.7}
+  .note{font-size:13px;color:var(--muted);text-align:center;padding:4px 10px 0;line-height:1.6}
   .note strong{color:var(--fg)}
   .homelink{text-align:center;margin:20px 0 4px}
-  .homelink a{display:inline-block;padding:11px 18px;border-radius:12px;
+  .homelink a{display:inline-block;padding:11px 18px;border-radius:var(--r-m);
     border:1px solid var(--line);background:var(--card);color:var(--muted);
     font-size:14px;font-weight:700;text-decoration:none;
     transition:color .15s, border-color .15s}
-  @media (hover:hover){ .homelink a:hover{color:var(--accent);border-color:var(--accent)} }
-  .homelink a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .noparam{background:var(--accentSoft);border:1px solid transparent}
+  @media (hover:hover){ .homelink a:hover{color:var(--accent-text);border-color:var(--accent)} }
+  .noparam{background:var(--accentSoft);border-color:transparent}
   .noparam h2{margin-bottom:8px}
-  .noparam p{margin:0;font-size:15px;color:var(--fg)}
+  .noparam p{margin:0;font-size:15px;line-height:1.6;color:var(--fg)}
+  /* 포커스 표시는 시작 페이지와 같은 방식 */
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
-    background:var(--fg);color:var(--bg);padding:12px 24px;border-radius:999px;font-weight:800;
+    background:var(--fg);color:var(--bg);padding:12px 24px;border-radius:999px;font-weight:700;
     font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:9}
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
 </style>
 </head>
 <body>
-<div class="wrap">
+<header>
+  <div class="inner">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3a4 4 0 0 1 4 4v1a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4Z"/>
+      <path d="M5 21v-1a7 7 0 0 1 7-7h0a7 7 0 0 1 7 7v1"/>
+    </svg>
+    <p class="service">거북목 측정 체험<span>결과</span></p>
+  </div>
+</header>
 
-  <div class="brand"><span class="dot"></span>거북목 측정 체험 · 결과</div>
+<div class="wrap">
 
   <!-- 측정값 없이 열린 경우 -->
   <section class="card noparam" id="noparam" hidden>
@@ -261,27 +306,27 @@
 
   /* ------------------------------------------------ 등급 정의 */
   const GRADES = {
-    A:{name:'아주 좋아요', color:'var(--gA)',
+    A:{name:'아주 좋아요', color:'var(--gA)', soft:'var(--gA-soft)', text:'var(--gA-txt)',
        desc:'머리가 어깨 위에 아주 잘 얹혀 있습니다. 목이 무게를 뼈로 받치고 있는 이상적인 상태예요. ' +
             '지금 자세를 그대로 유지하시면 됩니다.'},
-    B:{name:'양호', color:'var(--gB)',
+    B:{name:'양호', color:'var(--gB)', soft:'var(--gB-soft)', text:'var(--gB-txt)',
        desc:'머리가 어깨 위에 잘 얹혀 있습니다. 목이 무게를 뼈로 받치고 있는 좋은 상태예요. ' +
             '지금 자세를 유지하는 것만으로 충분하니, 아래 환경 점검만 가볍게 확인해 보세요.'},
-    C:{name:'주의', color:'var(--gC)',
+    C:{name:'주의', color:'var(--gC)', soft:'var(--gC-soft)', text:'var(--gC-txt)',
        desc:'아직 큰 문제는 아니지만 머리가 조금 앞으로 나와 있습니다. 이 상태로 오래 앉아 있으면 ' +
             '목 뒤가 뻣뻣해지기 쉬워요. 턱 당기기를 습관으로 만들면 지금 돌려놓을 수 있는 단계입니다.'},
-    D:{name:'거북목 의심', color:'var(--gD)',
+    D:{name:'거북목 의심', color:'var(--gD)', soft:'var(--gD-soft)', text:'var(--gD-txt)',
        desc:'머리가 어깨보다 뚜렷하게 앞에 있습니다. 목과 어깨 근육이 계속 머리를 붙잡고 있는 상태라 ' +
             '뻐근함이나 두통이 있을 수 있어요. 스트레칭과 함께 모니터 높이부터 바꿔보시는 걸 권합니다.'},
-    E:{name:'거북목 심함', color:'var(--gE)',
+    E:{name:'거북목 심함', color:'var(--gE)', soft:'var(--gE-soft)', text:'var(--gE-txt)',
        desc:'목에 부담이 많이 걸리는 자세입니다. 스트레칭도 도움이 되지만, 그보다 작업 환경을 바꾸는 것이 ' +
             '먼저입니다. 이미 통증이나 팔 저림이 있다면 한 번 진료를 받아보시는 걸 권합니다.'}
   };
 
   const BAL = [
-    {min:85, label:'균형 양호', color:'var(--gA)'},
-    {min:70, label:'약간 기울어짐', color:'var(--gB)'},
-    {min:0,  label:'기울어짐', color:'var(--gC)'}
+    {min:85, label:'균형 양호', color:'var(--gA)', soft:'var(--gA-soft)', text:'var(--gA-txt)'},
+    {min:70, label:'약간 기울어짐', color:'var(--gB)', soft:'var(--gB-soft)', text:'var(--gB-txt)'},
+    {min:0,  label:'기울어짐', color:'var(--gC)', soft:'var(--gC-soft)', text:'var(--gC-txt)'}
   ];
 
   /* ------------------------------------------------ 점수 영역 */
@@ -292,10 +337,11 @@
   }else{
     const g = GRADES[grade];
     $('#tag').textContent = grade + ' 등급';
-    $('#tag').style.background = g.color;
+    $('#tag').style.background = g.soft;
+    $('#tag').style.color = g.text;
     $('#score').textContent = Math.round(score);
     $('#gname').textContent = g.name;
-    $('#gname').style.color = g.color;
+    $('#gname').style.color = g.text;
     $('#gdesc').textContent = g.desc;
     $('#pin').style.left = Math.round(score) + '%';
     document.title = `거북목 ${Math.round(score)}점 · ${g.name}`;
@@ -303,11 +349,13 @@
     $('#vAngle').textContent = angle === null ? '–' : angle.toFixed(1) + '°';
     if(balance === null){
       $('#vBalance').textContent = '측정 안 됨';
-      $('#vBalance').style.background = 'var(--muted)';
+      $('#vBalance').style.background = 'var(--bg)';
+      $('#vBalance').style.color = 'var(--muted)';
     }else{
       const b = BAL.find(x => balance >= x.min);
       $('#vBalance').textContent = `${b.label} · ${Math.round(balance)}점`;
-      $('#vBalance').style.background = b.color;
+      $('#vBalance').style.background = b.soft;
+      $('#vBalance').style.color = b.text;
     }
     drawPosture(angle, g.color);
   }

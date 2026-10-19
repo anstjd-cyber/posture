@@ -124,7 +124,6 @@
   .btn{border:0;border-radius:999px;padding:18px 44px;font-size:19px;font-weight:800;cursor:pointer;font-family:inherit}
   .btn.p{background:var(--accent);color:#06121f}
   .btn.s{background:#ffffff14;color:var(--fg);border:1px solid #ffffff26}
-  .autoback{text-align:center;color:var(--muted);font-size:14px;margin-top:18px}
 
   /* ---------- 집계화면 ---------- */
   #view-dashboard{overflow:auto}
@@ -280,9 +279,8 @@
     </div>
     <div class="rbtns">
       <button class="btn p" id="btnAgain">다시 측정</button>
-      <button class="btn s" id="btnDone">완료</button>
+      <button class="btn s" id="btnDone">처음으로</button>
     </div>
-    <div class="autoback"><span id="backCount">30</span>초 후 자동으로 처음 화면으로 돌아갑니다</div>
   </div>
 </section>
 
@@ -350,7 +348,6 @@ const CFG_DEFAULT = {
   balTiltDz: 1.5,  balTiltW: 7,     // 어깨 기울기: 무감점 범위(°) / 1° 당 감점
   balHeadDz: 2.0,  balHeadW: 4,     // 머리 기울기
   balShiftDz: 4.0, balShiftW: 1.2,  // 머리 중심 치우침(%)
-  resultHoldMs: 30000,   // 결과화면 유지 시간
   idleEnterMs: 800,      // 대기화면에서 사람 감지 유지 → 자동 시작
   idleAbortMs: 18000,    // 측정 중 사람이 사라진 채 이만큼 지나면 대기화면 복귀
   resultBaseUrl: 'https://anstjd-cyber.github.io/posture/result/',
@@ -441,7 +438,7 @@ const balanceScore = (shTilt, hdTilt, shiftPct) => Math.round(clamp(
 const ST = {IDLE:'IDLE', GATE:'GATE', COUNT:'COUNT', MEASURE:'MEASURE', RESULT:'RESULT'};
 let st = ST.IDLE, stage = 1, tMark = 0, held = 0, lost = 0, absent = 0;
 let samples = [], sideResult = null, lastMetrics = null, lastQuality = null;
-let landmarker = null, running = false, lastVideoTs = -1, resultTimer = null;
+let landmarker = null, running = false, lastVideoTs = -1;
 let assetMode = '-';   // '로컬' | 'CDN' — 오프라인 준비가 됐는지 확인용
 
 const video = $('#video'), cv = $('#cv'), ctx = cv.getContext('2d');
@@ -477,7 +474,6 @@ function toast(msg, ms=2200){
 }
 
 function goIdle(){
-  clearTimeout(resultTimer);
   stage = 1; samples = []; sideResult = null;
   setView('view-attract'); setState(ST.IDLE);
 }
@@ -721,17 +717,6 @@ async function showResult(side, front, save = true){
   renderQR(rec);
   setView('view-result');
   setState(ST.RESULT);
-
-  // 자동 복귀 카운트다운
-  let left = Math.round(CFG.resultHoldMs/1000);
-  $('#backCount').textContent = left;
-  clearTimeout(resultTimer);
-  (function tickBack(){
-    if(st !== ST.RESULT) return;
-    if(left-- <= 0){ goIdle(); return; }
-    $('#backCount').textContent = left;
-    resultTimer = setTimeout(tickBack, 1000);
-  })();
 }
 
 function resultUrl(rec){
@@ -858,8 +843,7 @@ const OP_FIELDS = [
   ['타이밍 (ms)', [
     ['gateMs','자세 유지','number'],
     ['countdownMs','카운트다운','number'],
-    ['measureMs','측정 시간','number'],
-    ['resultHoldMs','결과 유지','number']]]
+    ['measureMs','측정 시간','number']]]
 ];
 
 function buildOpPanel(){
@@ -1043,13 +1027,12 @@ window.__tnbMetrics = (lm, W = cv.width || 1280, H = cv.height || 720) => metric
 
 /* 결과화면 미리보기 — 측정 없이 레이아웃/QR 주소를 확인할 때 사용 (기록에 저장되지 않음) */
 window.__tnbPreview = (angle = 72, shTilt = 2.1) => {
-  clearTimeout(resultTimer);
   showResult({angle, fwdRatio:0.4, n:52}, {shTilt, hdTilt:1.4, shiftPct:-3.2, n:49}, false);
   return {angle, score:scoreOf(angle), grade:gradeOf(scoreOf(angle))};
 };
 
 $('#view-attract').addEventListener('click', ()=>{ if(st===ST.IDLE) startRun(); });
-$('#btnAgain').addEventListener('click', ()=>{ clearTimeout(resultTimer); startRun(); });
+$('#btnAgain').addEventListener('click', startRun);
 $('#btnDone').addEventListener('click', goIdle);
 window.addEventListener('storage', e=>{
   if(e.key === REC_KEY && document.querySelector('#view-dashboard').classList.contains('on')) renderDash();
