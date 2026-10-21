@@ -710,9 +710,11 @@ async function showResult(side, front, save = true){
   const today = todayRecs();
   const better = today.filter(r=>r.score > score).length;
   const top = Math.round((better+1)/Math.max(today.length,1)*100);
-  $('#rankline').textContent = today.length >= 5
-    ? `오늘 측정한 ${today.length}명 중 상위 ${top}%`
-    : '오늘 우리 부스의 첫 측정자 중 한 분이네요!';
+  /* 측정이 5명 미만이면 순위가 의미 없으므로 줄 자체를 비운다.
+     hidden 으로 감춰야 제목 아래에 빈 줄이 남지 않는다. */
+  const hasRank = today.length >= 5;
+  $('#rankline').textContent = hasRank ? `오늘 측정한 ${today.length}명 중 상위 ${top}%` : '';
+  $('#rankline').hidden = !hasRank;
 
   renderQR(rec);
   setView('view-result');
