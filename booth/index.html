@@ -54,11 +54,12 @@
      집계화면(D)을 뺀 모든 화면에 보이며, 측정화면에서는 우상단 품질 칩과
      겹치지 않도록 .low 로 아래로 내린다. */
   #homelink{position:fixed;z-index:6;top:18px;right:20px;display:none;
-    padding:10px 16px;border-radius:999px;border:1px solid #ffffff26;
+    padding:12px 26px;border-radius:999px;border:1px solid #ffffff26;
     background:#000000a6;color:var(--muted);text-decoration:none;
-    font-size:14px;font-weight:700;backdrop-filter:blur(6px)}
+    font-size:20px;font-weight:700;backdrop-filter:blur(6px)}
   #homelink.on{display:block}
-  #homelink.low{top:84px;right:34px}   /* 품질 칩 아래 */
+  /* 측정화면에서는 우측 하단. 하단 고지 띠(최대 55px) 위로 띄운다. */
+  #homelink.low{top:auto;bottom:72px;right:34px}
   @media (hover:hover){ #homelink:hover{color:var(--fg);border-color:var(--accent)} }
   #homelink:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
@@ -369,11 +370,11 @@ const todayRecs = () => { const k=dayKey(Date.now()); return loadRecs().filter(r
 
 /* --------------------------------------------------------------- 등급 */
 const GRADES = {
-  A:{min:81, name:'아주 좋아요', color:'var(--gA)', desc:'목이 어깨 위에 아주 잘 얹혀 있어요. 지금 자세를 그대로 유지해 주세요.'},
-  B:{min:61, name:'양호', color:'var(--gB)', desc:'대체로 좋은 자세예요. 머리가 아주 조금 앞으로 나와 있으니 가끔 턱을 당겨주세요.'},
-  C:{min:41, name:'주의', color:'var(--gC)', desc:'머리가 조금 앞으로 나와 있어요. 한 시간에 한 번씩 턱을 뒤로 당겨주세요.'},
-  D:{min:21, name:'거북목 의심', color:'var(--gD)', desc:'머리가 어깨보다 상당히 앞에 있어요. 모니터를 눈높이로 올리고 턱당기기 운동을 추천합니다.'},
-  E:{min:0,  name:'거북목 심함', color:'var(--gE)', desc:'목에 부담이 큰 자세예요. 작업 환경을 점검하고 전문가 상담을 고려해 보세요.'}
+  A:{min:81, name:'아주 좋아요', color:'var(--gA)', desc:'목이 어깨 위에 아주 잘 얹혀 있어요.<br>지금 자세를 그대로 유지해 주세요.'},
+  B:{min:61, name:'양호', color:'var(--gB)', desc:'대체로 좋은 자세예요.<br>머리가 아주 조금 앞으로 나와 있으니 가끔 턱을 당겨주세요.'},
+  C:{min:41, name:'주의', color:'var(--gC)', desc:'머리가 조금 앞으로 나와 있어요.<br>한 시간에 한 번씩 턱을 뒤로 당겨주세요.'},
+  D:{min:21, name:'거북목 의심', color:'var(--gD)', desc:'머리가 어깨보다 상당히 앞에 있어요.<br>모니터를 눈높이로 올리고 턱당기기 운동을 추천합니다.'},
+  E:{min:0,  name:'거북목 심함', color:'var(--gE)', desc:'목에 부담이 큰 자세예요.<br>작업 환경을 점검하고 전문가 상담을 고려해 보세요.'}
 };
 /* 등급은 점수를 20점 단위로 자른 구간이다. 예전에는 각도 임계값으로 따로 판정해서
    점수와 등급이 서로 어긋나 보였다(88점인데 A가 아닌 식). 이제 점수 하나에서 끌어낸다. */
@@ -698,7 +699,7 @@ async function showResult(side, front, save = true){
   $('#gScore').textContent = score;
   $('#gName').textContent = g.name;
   $('#gName').style.color = g.color;
-  $('#gDesc').textContent = g.desc;
+  $('#gDesc').innerHTML = g.desc;   /* desc 안의 <br> 을 살린다 (내용은 위 상수뿐) */
   $('#gPin').style.left = score + '%';
 
   $('#mAngle').textContent = `${angle.toFixed(1)}°`;
