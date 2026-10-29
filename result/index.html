@@ -256,7 +256,7 @@
 
   <!-- 설명 -->
   <div class="actions">
-    <button class="p" id="btnShare">결과 공유하기</button>
+    <button class="p" id="btnShare">결과 이미지 저장</button>
     <button id="btnTop">맨 위로</button>
   </div>
 
@@ -344,6 +344,7 @@
   /* ------------------------------------------------ 점수 영역 */
   if(!hasResult){
     $('#noparam').hidden = false;
+    $('#btnShare').textContent = '링크 공유하기';
     $('#figcard').hidden = true;
   }else{
     const g = GRADES[grade];
@@ -600,18 +601,159 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.remove('on'), 2200);
   }
 
+  /* ------------------------------------------ 결과 이미지 만들기
+     링크만 공유하면 받는 쪽에서 주소를 열어야 하고, 공유 시트가 막힌 기기도 있다.
+     그래서 결과를 그림 한 장으로 그려 저장하거나 바로 공유할 수 있게 했다.
+     외부 라이브러리 없이 캔버스에 직접 그린다. */
+  const CARD_COLOR = {
+    A:{txt:'#0b50d0', soft:'#ecf2fe'}, B:{txt:'#466f17', soft:'#eef6e4'},
+    C:{txt:'#845b04', soft:'#fdf3dc'}, D:{txt:'#a34c15', soft:'#fdeade'},
+    E:{txt:'#b8343a', soft:'#fbeff0'}
+  };
+
+  /* 캔버스에는 자동 줄바꿈이 없어 직접 끊는다. 한국어는 어절 사이에 공백이 있어
+     공백 단위로 끊으면 대체로 자연스럽다. */
+  function wrapText(c, text, maxW, maxLines){
+    const words = text.split(' ');
+    const lines = []; let line = '';
+    for(const w of words){
+      const t = line ? line + ' ' + w : w;
+      if(c.measureText(t).width > maxW && line){ lines.push(line); line = w; }
+      else line = t;
+    }
+    if(line) lines.push(line);
+    if(lines.length <= maxLines) return lines;
+    const cut = lines.slice(0, maxLines);
+    cut[maxLines-1] = cut[maxLines-1].slice(0, -1) + '…';
+    return cut;
+  }
+
+  function roundRect(c, x, y, w, h, r){
+    c.beginPath();
+    c.moveTo(x+r, y);
+    c.arcTo(x+w, y, x+w, y+h, r); c.arcTo(x+w, y+h, x, y+h, r);
+    c.arcTo(x, y+h, x, y, r);     c.arcTo(x, y, x+w, y, r);
+    c.closePath();
+  }
+
+  async function makeResultCard(){
+    try{ await document.fonts.ready; }catch{}      /* 글꼴이 준비돼야 글자가 제 모양으로 그려진다 */
+    const W = 1080, H = 1350, P = 84;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const c = cv.getContext('2d');
+    const F = (w,s) => `${w} ${s}px "Pretendard Variable","Pretendard",system-ui,sans-serif`;
+    const col = CARD_COLOR[grade] || CARD_COLOR.C;
+    const sc = Math.round(score);
+
+    /* 받는 사람의 화면 테마와 무관해야 하므로 밝은 색을 고정으로 쓴다 */
+    c.fillStyle = '#f4f5f6'; c.fillRect(0, 0, W, H);
+    c.fillStyle = '#ffffff'; roundRect(c, 40, 40, W-80, H-80, 24); c.fill();
+    c.strokeStyle = '#cdd1d5'; c.lineWidth = 2; c.stroke();
+
+    let y = 160;
+    c.textAlign = 'left';
+    c.fillStyle = '#464c53'; c.font = F(700, 30);
+    c.fillText('거북목 자세 측정 결과', P, y);
+
+    y += 130;
+    c.fillStyle = '#1e2124'; c.font = F(800, 150);
+    c.fillText(String(sc), P, y);
+    const numW = c.measureText(String(sc)).width;
+    c.fillStyle = '#6d7882'; c.font = F(700, 44);
+    c.fillText('점', P + numW + 14, y);
+
+    y += 86;
+    const chip = `${grade}등급`;
+    c.font = F(700, 32);
+    const cw = c.measureText(chip).width + 48;
+    c.fillStyle = col.soft; roundRect(c, P, y-42, cw, 58, 10); c.fill();
+    c.fillStyle = col.txt;  c.fillText(chip, P + 24, y);
+    c.fillStyle = '#1e2124'; c.font = F(800, 44);
+    c.fillText(GRADES[grade].name, P + cw + 24, y + 2);
+
+    y += 104;
+    c.fillStyle = '#464c53'; c.font = F(700, 38);
+    c.fillText(`당신은 ${Math.round(20 + (100 - sc) * 0.5)}세 거북이`, P, y);
+
+    y += 62;
+    c.strokeStyle = '#e6e8ea'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(P, y); c.lineTo(W - P, y); c.stroke();
+
+    y += 76;
+    const rows = [
+      ['목 각도 (측면)', angle === null ? '–' : angle.toFixed(1) + '°'],
+      ['어깨 균형',      balance === null ? '측정 안 됨' : Math.round(balance) + '점']
+    ];
+    for(const [k, v] of rows){
+      c.textAlign = 'left';  c.fillStyle = '#464c53'; c.font = F(500, 34);
+      c.fillText(k, P, y);
+      c.textAlign = 'right'; c.fillStyle = '#1e2124'; c.font = F(700, 38);
+      c.fillText(v, W - P, y);
+      y += 66;
+    }
+
+    /* 점수 미터 — 숫자만 보면 50점이 어느 정도인지 모른다.
+       페이지에서 뺀 색 띠를 그림에서만 되살린다. */
+    y += 26;
+    const bx = P, bw = W - P*2, bh = 26;
+    const grad = c.createLinearGradient(bx, 0, bx + bw, 0);
+    [['#d8484e',0],['#e0702a',.25],['#c98a06',.5],['#5e9c1e',.75],['#256ef4',1]]
+      .forEach(([cc,p]) => grad.addColorStop(p, cc));
+    c.fillStyle = grad; roundRect(c, bx, y, bw, bh, bh/2); c.fill();
+    const px = bx + bw * (sc / 100);
+    c.fillStyle = '#ffffff'; roundRect(c, px-10, y-11, 20, bh+22, 10); c.fill();
+    c.fillStyle = '#1e2124'; roundRect(c, px-5,  y-7,  10, bh+14, 5);  c.fill();
+    c.font = F(500, 26); c.fillStyle = '#6d7882';
+    c.textAlign = 'left';   c.fillText('심함', bx, y + bh + 44);
+    c.textAlign = 'center'; c.fillText('주의', bx + bw/2, y + bh + 44);
+    c.textAlign = 'right';  c.fillText('양호', bx + bw, y + bh + 44);
+
+    /* 등급 설명 — 페이지에서 뺀 해설을 그림이 대신 담는다 */
+    y += bh + 106;
+    c.textAlign = 'left'; c.fillStyle = '#1e2124'; c.font = F(500, 29);
+    for(const line of wrapText(c, GRADES[grade].desc, W - P*2, 4)){
+      c.fillText(line, P, y); y += 46;
+    }
+
+    const d = new Date();
+    const ymd = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+    c.textAlign = 'left'; c.fillStyle = '#6d7882'; c.font = F(500, 26);
+    c.fillText(ymd, P, H - 196);
+    c.fillText('anstjd-cyber.github.io/posture', P, H - 152);
+    c.fillStyle = '#ab2b36'; c.font = F(600, 24);
+    c.fillText('이 측정은 의료기기가 아니며 진단에 사용할 수 없습니다.', P, H - 106);
+
+    return new Promise(res => cv.toBlob(res, 'image/png'));
+  }
+
   $('#btnShare').addEventListener('click', async () => {
-    const text = hasResult
-      ? `거북목 측정 결과: ${Math.round(score)}점 (${grade}등급 · ${GRADES[grade].name})`
-      : '거북목 측정하고 맞춤 스트레칭 받아보기';
-    const data = {title:'거북목 측정 결과', text, url:location.href};
+    /* 점수가 없으면 그릴 것이 없다 — 예전처럼 링크만 넘긴다 */
+    if(!hasResult){
+      const text = '거북목 측정하고 맞춤 스트레칭 받아보기';
+      try{
+        if(navigator.share){ await navigator.share({title:'거북목 측정', text, url:location.href}); return; }
+        await navigator.clipboard.writeText(`${text}\n${location.href}`);
+        toast('링크를 복사했어요');
+      }catch(err){
+        if(!(err && err.name === 'AbortError')) toast('주소창의 주소를 복사해 주세요');
+      }
+      return;
+    }
+
     try{
-      if(navigator.share){ await navigator.share(data); return; }
-      await navigator.clipboard.writeText(`${text}\n${location.href}`);
-      toast('링크를 복사했어요');
+      const blob = await makeResultCard();
+      /* 공유 시트를 먼저 띄우면 '저장'이 안 되는 기기가 있어, 항상 내려받기로 통일한다.
+         저장한 뒤 사진첩에서 공유하면 되고, 동작이 기기마다 달라지지 않는다. */
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `거북목-${Math.round(score)}점.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('이미지를 저장했어요');
     }catch(err){
       if(err && err.name === 'AbortError') return;   // 사용자가 공유창을 닫은 경우
-      toast('화면을 캡처해서 저장해 주세요');
+      toast('저장에 실패했어요. 화면을 캡처해 주세요');
     }
   });
 
