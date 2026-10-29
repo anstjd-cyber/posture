@@ -344,7 +344,7 @@
   /* ------------------------------------------------ 점수 영역 */
   if(!hasResult){
     $('#noparam').hidden = false;
-    $('#btnShare').textContent = '링크 공유하기';
+    $('#btnShare').textContent = '링크 복사하기';
     $('#figcard').hidden = true;
   }else{
     const g = GRADES[grade];
@@ -730,13 +730,13 @@
   $('#btnShare').addEventListener('click', async () => {
     /* 점수가 없으면 그릴 것이 없다 — 예전처럼 링크만 넘긴다 */
     if(!hasResult){
-      const text = '거북목 측정하고 맞춤 스트레칭 받아보기';
+      /* 공유 시트를 띄우면 PC 에서는 낯선 시스템 대화상자가 열리고 기기마다 달라진다.
+         이미지 저장과 같은 이유로 여기서도 동작을 하나로 고정한다 — 링크 복사. */
       try{
-        if(navigator.share){ await navigator.share({title:'거북목 측정', text, url:location.href}); return; }
-        await navigator.clipboard.writeText(`${text}\n${location.href}`);
+        await navigator.clipboard.writeText(location.href);
         toast('링크를 복사했어요');
-      }catch(err){
-        if(!(err && err.name === 'AbortError')) toast('주소창의 주소를 복사해 주세요');
+      }catch{
+        toast('주소창의 주소를 복사해 주세요');
       }
       return;
     }
