@@ -367,7 +367,7 @@
        다음 등급은 g 파라미터가 아니라 점수에서 직접 구한다. 주소를 손으로 고쳐
        점수와 등급이 어긋난 경우에도 혼자 엉뚱한 값이 뜨지 않게 하기 위해서다. */
     const sc = Math.round(score);
-    $('#turtleAge').textContent = Math.round(20 + (100 - sc) * 0.5);
+    $('#turtleAge').textContent = Math.round(15 + (100 - sc) * 0.5);
     const up = sc >= 81 ? null
              : sc >= 61 ? ['A', 81] : sc >= 41 ? ['B', 61]
              : sc >= 21 ? ['C', 41] : ['D', 21];
@@ -674,7 +674,7 @@
 
     y += 104;
     c.fillStyle = '#464c53'; c.font = F(700, 38);
-    c.fillText(`당신은 ${Math.round(20 + (100 - sc) * 0.5)}세 거북이`, P, y);
+    c.fillText(`당신은 ${Math.round(15 + (100 - sc) * 0.5)}세 거북이`, P, y);
 
     y += 62;
     c.strokeStyle = '#e6e8ea'; c.lineWidth = 2;

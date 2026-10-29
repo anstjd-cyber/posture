@@ -338,8 +338,14 @@ const CFG_KEY='tnb.cfg', REC_KEY='tnb.records';
    웹캠은 C7을 볼 수 없어 어깨 관절점을 대신 쓰므로 절대값에 편향이 있습니다.
    운영자 패널(O)에서 수정하면 즉시 반영·저장됩니다. */
 const CFG_DEFAULT = {
-  angleMin: 50,          // 0점에 해당하는 목 각도
-  angleMax: 88,          // 100점에 해당하는 목 각도
+  /* 귀가 어깨 바로 위면 각도는 수학적으로 정확히 90° 다(교과서적 중립).
+     만점을 그보다 2° 낮은 88° 에 두고, 0점을 70° 로 올려 구간을 18° 로 좁혔다.
+     예전 값(50~88)은 구간이 38° 라 평범한 자세도 쉽게 높은 점수가 나왔다.
+     구간을 더 좁히면(0점 72° 이상) 1° 에 6점 넘게 움직여, 같은 사람이 다시 잴 때
+     등급이 뒤집힌다. 18° 가 엄격함과 안정성의 타협점이다.
+     표본이 한 명뿐이라 임시값이다 — 부스 세팅 날 5~6명으로 다시 맞춰야 한다. */
+  angleMin: 70,          // 낮은 쪽 기준 각도 (약 5점)
+  angleMax: 88,          // 높은 쪽 기준 각도 (약 95점)
   sideViewMax: 0.50,     // 측면 판정: 어깨폭/목머리길이 비율 상한
   frontViewMin: 0.90,    // 정면 판정: 같은 비율 하한
   gateMs: 1200,          // 올바른 자세 유지 시간 → 카운트다운 진입
@@ -382,7 +388,18 @@ const GRADES = {
    점수와 등급이 서로 어긋나 보였다(88점인데 A가 아닌 식). 이제 점수 하나에서 끌어낸다. */
 const GRADE_KEYS = ['A','B','C','D','E'];
 const gradeOf = score => GRADE_KEYS.find(k => score >= GRADES[k].min) || 'E';
-const scoreOf = a => Math.round(clamp((a-CFG.angleMin)/(CFG.angleMax-CFG.angleMin), 0, 1) * 100);
+/* 각도 → 점수. 직선으로 환산하면 양 끝이 0·100 에 뭉개진다 —
+   아주 좋은 자세와 그냥 좋은 자세가 똑같이 100점이 되고, 심한 거북목끼리도 다 0점이다.
+   S자 곡선(로지스틱)을 쓰면 사람이 몰리는 가운데에서 1° 차이가 더 크게 벌어지고,
+   양 끝은 완만하게 눌려 0·100 에 잘 붙지 않는다.
+   angleMin·angleMax 는 이제 각각 약 5점·95점 지점이다(운영자가 맞추는 뜻은 그대로). */
+const scoreOf = a => {
+  const lo = CFG.angleMin, hi = CFG.angleMax;
+  const mid = (lo + hi) / 2;
+  const span = Math.max(1, hi - lo);
+  const k = 5.888 / span;          // 양 끝이 5점·95점이 되는 기울기
+  return Math.round(100 / (1 + Math.exp(-k * (a - mid))));
+};
 
 const BALANCE = [
   {min:85, label:'균형 양호', color:'var(--gA)'},
@@ -910,8 +927,8 @@ function updateCalib(m, q){
 /* ------------------------------------------------------- 운영자 패널 */
 const OP_FIELDS = [
   ['점수 환산', [
-    ['angleMin','0점 각도 (°)','number'],
-    ['angleMax','100점 각도 (°)','number']]],
+    ['angleMin','낮은 쪽 각도 (약 5점)','number'],
+    ['angleMax','높은 쪽 각도 (약 95점)','number']]],
   ['자세 판정', [
     ['sideViewMax','측면 비율 ≤','number'],
     ['frontViewMin','정면 비율 ≥','number'],
