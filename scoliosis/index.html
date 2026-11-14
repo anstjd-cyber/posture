@@ -109,20 +109,20 @@
   .card{
     display:flex;flex-direction:column;justify-content:center;
     text-decoration:none;color:inherit;background:var(--surface);
-    border:1px solid var(--line);border-radius:var(--r-m);padding:22px 20px;
+    border:1px solid var(--line);border-radius:var(--r-m);padding:15px 20px;
     transition:border-color .12s, background-color .12s;
   }
-  .card .t{font-size:19px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .card .t{font-size:18px;font-weight:700;line-height:1.4;display:flex;align-items:center;gap:8px}
   .card .t .go{margin-left:auto;flex:none;color:var(--accent-strong);
     width:20px;height:20px;transition:transform .12s}
-  .card .d{font-size:15px;color:var(--text-subtle);margin-top:8px}
+  .card .d{font-size:15px;color:var(--text-subtle);margin-top:4px;line-height:1.5}
   .card.lead-card{border-left:4px solid var(--accent)}
   .card.sub-card{border-left:4px solid var(--accent-green)}
   .card.sub-card .t .go{color:var(--accent-green)}
   .badge{
     display:inline-block;background:var(--accent-soft);color:var(--text-primary);
-    font-size:13px;font-weight:700;padding:3px 9px;border-radius:var(--r-s);
-    margin-bottom:10px;
+    font-size:12px;font-weight:700;padding:2px 8px;border-radius:var(--r-s);
+    margin-bottom:5px;
     align-self:flex-start;   /* 카드가 flex 라 이걸 빼면 배지가 카드 너비로 늘어난다 */
   }
   @media (hover:hover){
