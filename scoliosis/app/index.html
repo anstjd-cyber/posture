@@ -340,8 +340,8 @@
              제목·설명·범례까지 통째로 접는다(설명만 남으면 무엇을 보라는 건지 알 수 없다). -->
         <div id="foldsec">
           <h3>좌우를 접어서 겹쳐보기</h3>
-          <p class="fhint">1차(정면) 측정 순간의 모습입니다. 가운데 선을 기준으로
-            <b>왼쪽 절반을 뒤집어 오른쪽에 포개</b> 놓았어요.
+          <p class="fhint">1차(정면) 측정 순간의 모습입니다.<br>
+            가운데 선을 기준으로 <b>왼쪽 절반을 뒤집어 오른쪽에 포개</b> 놓았어요.<br>
             윤곽이 어긋난 곳이 좌우 차이가 큰 부분입니다.</p>
           <div id="foldwrap"><canvas id="fold"></canvas></div>
           <div class="foldlegend">
@@ -911,14 +911,14 @@ function showResult(front, back, save = true){
   const camOff = Math.abs(d.camTilt) > CFG.camWarnDeg;
   warn.classList.toggle('on', camOff);
   if(camOff){
-    warn.innerHTML = `카메라가 <b>${Math.abs(d.camTilt).toFixed(1)}° 기울어</b> 있습니다.
+    warn.innerHTML = `카메라가 <b>${Math.abs(d.camTilt).toFixed(1)}° 기울어</b> 있습니다.<br>
       결과에서는 이미 빼냈지만, 노트북 화면(또는 웹캠)을 바로 세우면 측정이 더 안정됩니다.`;
   }
 
   $('#funPct').textContent = score + '%';
-  $('#funSub').textContent = score >= 95
-    ? '거의 완벽한 대칭이에요. 사실 사람의 몸은 원래 좌우가 조금씩 다릅니다!'
-    : '사람의 몸은 원래 좌우가 완전히 같지 않아요. 재미로만 봐 주세요.';
+  $('#funSub').innerHTML = score >= 95
+    ? '거의 완벽한 대칭이에요.<br>사실 사람의 몸은 원래 좌우가 조금씩 다릅니다!'
+    : '사람의 몸은 원래 좌우가 완전히 같지 않아요.<br>재미로만 봐 주세요.';
 
   const today = todayRecs();
   const hasRank = today.length >= 5;
