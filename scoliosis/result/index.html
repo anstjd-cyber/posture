@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#256ef4">
+<title>좌우 균형 체크 결과</title>
+<meta name="description" content="좌우 균형 측정 결과와 균형을 되찾는 스트레칭 가이드.">
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  /* 시작 페이지와 같은 KRDS 토큰을 쓴다. 두 페이지가 같은 체험으로 읽혀야 한다. */
+  :root{
+    --gray-0:#ffffff;  --gray-5:#f4f5f6;  --gray-10:#e6e8ea; --gray-20:#cdd1d5;
+    --gray-30:#b1b8be; --gray-50:#6d7882; --gray-60:#58616a; --gray-70:#464c53;
+    --gray-90:#1e2124; --gray-95:#131416;
+    --primary-5:#ecf2fe;  --primary-10:#d8e5fd; --primary-30:#86aff9;
+    --primary-40:#4c87f6; --primary-50:#256ef4; --primary-60:#0b50d0;
+    --point-5:#fbeff0; --point-50:#d63d4a; --point-60:#ab2b36;
+    --success-30:#7ec88e; --success-50:#228738;
+    --l1-bar:#228738; --l2-bar:#c98a06; --l3-bar:#e0702a;
+    --l1-txt:#1b6c2d; --l2-txt:#845b04; --l3-txt:#a34c15;
+
+    --bg:var(--gray-5);        --surface:var(--gray-0);
+    --text:var(--gray-90);     --text-subtle:var(--gray-70);
+    --text-primary:var(--primary-60);
+    --line:var(--gray-20);     --line-subtle:var(--gray-10);
+    --accent:var(--primary-50); --accent-strong:var(--primary-60);
+    --accent-soft:var(--primary-5);
+    --warn:var(--point-50); --warn-text:var(--point-60); --warn-soft:var(--point-5);
+    --r-s:4px; --r-m:6px; --r-l:10px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:var(--gray-95);       --surface:var(--gray-90);
+      --text:var(--gray-5);      --text-subtle:var(--gray-30);
+      --text-primary:var(--primary-30);
+      --line:var(--gray-70);     --line-subtle:#2b2f34;
+      --accent:var(--primary-40); --accent-strong:var(--primary-30);
+      --accent-soft:#18243a;
+      --warn:#e0858c; --warn-text:#f5d6d9; --warn-soft:#2a1719;
+      --l1-bar:#4ade80; --l2-bar:#fbbf24; --l3-bar:#fb923c;
+      --l1-txt:#4ade80; --l2-txt:#fbbf24; --l3-txt:#fb923c;
+    }
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Pretendard Variable","Pretendard","Apple SD Gothic Neo",
+      "Malgun Gothic","Segoe UI",system-ui,sans-serif;
+    font-size:17px; line-height:1.5; -webkit-text-size-adjust:100%;
+  }
+  .skip{position:absolute;left:-999px;top:0;z-index:10}
+  .skip:focus{left:8px;top:8px;background:var(--accent-strong);color:#fff;
+    padding:10px 16px;border-radius:var(--r-m);font-weight:700;font-size:15px}
+
+  header{background:var(--surface);border-bottom:1px solid var(--line)}
+  header .inner{display:flex;align-items:center;gap:10px;height:60px;
+    max-width:680px;margin:0 auto;padding:0 20px}
+  .mark{width:26px;height:26px;flex:none;color:var(--accent)}
+  .service{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+  .service span{color:var(--text-subtle);font-weight:400;font-size:15px;margin-left:7px}
+
+  .wrap{max-width:680px;margin:0 auto;padding:28px 20px 60px}
+  .card{background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--r-m);padding:22px 20px;margin-bottom:14px}
+  .card h2{margin:0 0 14px;font-size:19px;font-weight:700;
+    display:flex;align-items:center;gap:9px}
+  .card h2 .n{flex:none;width:24px;height:24px;border-radius:999px;
+    background:var(--accent-soft);color:var(--text-primary);
+    display:grid;place-items:center;font-size:13px;font-weight:800}
+
+  /* ---------- 점수 ---------- */
+  .scorecard{text-align:center}
+  /* 칩은 색을 채우지 않고 테두리로 쓴다. 노랑·주황 띠 색 위에 흰 글자를 얹으면
+     대비가 3:1 근처까지 떨어져 작은 글자가 읽히지 않는다. 글자색은 흰/검은 배경
+     각각에 맞춰 따로 둔 --l*-txt 를 쓴다. */
+  .lvchip{display:inline-block;font-size:14px;font-weight:800;letter-spacing:.02em;
+    padding:6px 16px;border-radius:999px;margin-bottom:12px;
+    border:1.5px solid currentColor;background:transparent}
+  .score{font-size:clamp(62px,17vw,104px);font-weight:900;line-height:.95;
+    letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .score small{font-size:.27em;font-weight:700;color:var(--text-subtle);
+    letter-spacing:0;margin-left:3px}
+  .lvshort{font-size:clamp(20px,4.6vw,27px);font-weight:800;margin-top:8px}
+  .lvdesc{color:var(--text-subtle);font-size:16px;margin-top:10px;line-height:1.65}
+  .meterwrap{position:relative;margin:26px 0 7px}
+  .meter{height:12px;border-radius:99px;overflow:hidden;
+    background:linear-gradient(90deg,var(--l3-bar),var(--l2-bar) 48%,var(--l1-bar))}
+  /* 단계 경계(60·80점)를 띠 위에 그어둔다. 눈금이 없으면 핀이 어느 단계에 있는지
+     색으로만 짐작해야 하고, 아래 글자가 균등 간격이라 경계를 잘못 읽게 된다. */
+  .tick{position:absolute;top:0;width:2px;height:12px;background:var(--surface);opacity:.85}
+  .pin{position:absolute;top:-7px;width:4px;height:26px;background:var(--text);
+    border-radius:3px;box-shadow:0 0 0 3px var(--surface);transform:translateX(-50%)}
+  .meterlab{position:relative;height:17px;color:var(--text-subtle);font-size:13px}
+  .meterlab span{position:absolute;white-space:nowrap;transform:translateX(-50%)}
+  .meterlab span:first-child{left:0;transform:none}
+  .meterlab span:last-child{left:auto;right:0;transform:none}
+
+  /* ---------- 측정값 ---------- */
+  .kv{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:13px 0;border-bottom:1px solid var(--line-subtle)}
+  .kv:last-child{border-bottom:0}
+  .kv .k{color:var(--text-subtle);font-size:15px}
+  .kv .v{font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;text-align:right}
+  .kv .v em{font-style:normal;font-weight:400;font-size:14px;
+    color:var(--text-subtle);margin-left:7px}
+
+  /* ---------- 재미 요소 ----------
+     측정값과 섞이지 않도록 점선 상자로 분리한다(거북목 결과 페이지와 같은 원칙). */
+  .fun{background:var(--accent-soft);border:1px dashed var(--line);
+    border-radius:var(--r-m);padding:20px;text-align:center;margin-bottom:14px}
+  .funchip{display:inline-block;background:var(--surface);color:var(--text-subtle);
+    font-size:12px;font-weight:800;letter-spacing:.06em;padding:4px 11px;
+    border-radius:999px;margin-bottom:10px}
+  .funbig{font-size:clamp(19px,4.6vw,25px);font-weight:800;letter-spacing:-.01em;margin:0}
+  .funbig em{font-style:normal;color:var(--text-primary)}
+  .funsub{color:var(--text-subtle);font-size:14px;margin:8px 0 0;line-height:1.6}
+
+  /* ---------- 스트레칭 ---------- */
+  .ex{border:1px solid var(--line);border-radius:var(--r-m);
+    padding:16px 18px;margin-bottom:10px;background:var(--bg)}
+  .ex:last-child{margin-bottom:0}
+  .ex h3{margin:0 0 4px;font-size:17px;font-weight:700;
+    display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .ex h3 .dose{font-size:13px;font-weight:700;color:var(--text-primary);
+    background:var(--accent-soft);padding:3px 9px;border-radius:var(--r-s)}
+  .ex p{margin:0;font-size:15px;color:var(--text-subtle);line-height:1.65}
+  .ex .side{display:inline-block;margin-top:7px;font-size:14px;font-weight:700;
+    color:var(--text-primary)}
+
+  .chk{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  .chk li{display:flex;gap:10px;align-items:flex-start;font-size:15px;
+    color:var(--text-subtle);line-height:1.6}
+  .chk li svg{flex:none;width:19px;height:19px;color:var(--accent);margin-top:2px}
+
+  .noparam{background:var(--accent-soft);border-color:transparent}
+  .noparam h2{margin-bottom:8px}
+  .noparam p{margin:0 0 6px;font-size:15px;line-height:1.65;color:var(--text)}
+  .noparam p:last-child{margin-bottom:0}
+
+  .warnbox{border:1px solid var(--warn);background:var(--warn-soft);
+    border-radius:var(--r-m);padding:18px 20px;margin-bottom:14px}
+  .warnbox h3{margin:0 0 6px;font-size:17px;font-weight:700;color:var(--warn-text);
+    display:flex;align-items:center;gap:7px}
+  .warnbox p{margin:0;font-size:15px;color:var(--warn-text);line-height:1.6}
+  .warnbox .ico{width:18px;height:18px;flex:none}
+
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .btns button,.btns a{flex:1;min-width:140px;border:1px solid var(--line);
+    border-radius:var(--r-m);padding:14px 18px;font-size:16px;font-weight:700;
+    font-family:inherit;cursor:pointer;background:var(--surface);color:var(--text);
+    text-align:center;text-decoration:none;transition:border-color .12s,background-color .12s}
+  .btns .p{background:var(--accent-strong);border-color:var(--accent-strong);color:#fff}
+  @media (hover:hover){
+    .btns button:hover,.btns a:hover{border-color:var(--accent)}
+    .btns .p:hover{background:var(--primary-50)}
+  }
+
+  footer{border-top:1px solid var(--line);background:var(--surface)}
+  footer .inner{max-width:680px;margin:0 auto;padding:18px 20px;text-align:center}
+  footer p{margin:0;font-size:14px;color:var(--text-subtle);text-wrap:balance}
+
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--text);color:var(--bg);padding:12px 24px;border-radius:999px;
+    font-weight:700;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">본문 바로가기</a>
+
+<header>
+  <div class="inner">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3v18"/><path d="M5 8h14"/><path d="M8 8l-3 6h6Z"/><path d="M16 8l3 6h-6Z"/>
+    </svg>
+    <p class="service">좌우 균형 체크<span>결과</span></p>
+  </div>
+</header>
+
+<div class="wrap" id="main">
+
+  <!-- 측정값 없이 열린 경우 -->
+  <section class="card noparam" id="noparam" hidden>
+    <h2>아직 측정 결과가 없습니다</h2>
+    <p>측정을 마친 뒤 화면에 표시된 QR코드를 휴대폰으로 스캔하면 내 균형 점수를 볼 수 있어요.</p>
+    <p>측정 전에도 아래 스트레칭 가이드는 그대로 이용할 수 있습니다.</p>
+  </section>
+
+  <!-- 점수 -->
+  <section class="card scorecard" id="scorecard" hidden>
+    <div class="lvchip" id="lvchip">단계</div>
+    <div class="score"><span id="score">0</span><small>점</small></div>
+    <div class="lvshort" id="lvshort"></div>
+    <div class="lvdesc" id="lvdesc"></div>
+    <div class="meterwrap">
+      <div class="meter"></div>
+      <div class="tick" style="left:60%"></div>
+      <div class="tick" style="left:80%"></div>
+      <div class="pin" id="pin" style="left:0%"></div>
+    </div>
+    <!-- 글자는 각 단계 구간의 가운데에 놓는다 (0~59 / 60~79 / 80~100) -->
+    <div class="meterlab"><span>상담 권유</span><span style="left:70%">관찰 권장</span><span>양호</span></div>
+  </section>
+
+  <!-- 재미로 보는 -->
+  <section class="fun" id="funcard" hidden>
+    <span class="funchip">재미로 보는</span>
+    <p class="funbig">당신의 몸은 좌우가 <em id="funPct">0%</em> 닮았습니다</p>
+    <p class="funsub" id="funSub"></p>
+  </section>
+
+  <!-- 측정값 -->
+  <section class="card" id="valuecard" hidden>
+    <h2><span class="n">1</span>측정된 내 좌우 균형</h2>
+    <div class="kv"><span class="k">어깨 높이차</span><span class="v" id="vSh">–</span></div>
+    <div class="kv"><span class="k">골반 높이차</span><span class="v" id="vPv">–</span></div>
+    <div class="kv"><span class="k">몸통 중심 치우침</span><span class="v" id="vSf">–</span></div>
+    <p class="lvdesc" style="margin-top:14px">정면과 뒤돌아선 자세를 각각 재서
+      <strong>카메라 기울기는 이미 빼낸 값</strong>이에요. 왼쪽·오른쪽은 모두
+      <strong>본인 기준</strong>입니다.</p>
+  </section>
+
+  <!-- 스트레칭 -->
+  <section class="card">
+    <h2><span class="n">2</span>좌우 균형을 위한 스트레칭</h2>
+    <p class="lvdesc" style="margin:-6px 0 16px" id="planline">짧게라도 매일 하는 쪽이
+      한 번에 오래 하는 것보다 효과적이에요.</p>
+    <div id="exercises"></div>
+  </section>
+
+  <!-- 생활 습관 -->
+  <section class="card">
+    <h2><span class="n">3</span>지금 바로 고칠 수 있는 것</h2>
+    <ul class="chk" id="chk"></ul>
+  </section>
+
+  <div class="warnbox">
+    <h3>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/>
+      </svg>
+      이 결과를 어떻게 봐야 하나요
+    </h3>
+    <p>참고용 측정이며 의료기기나 진단을 대신하지 않아요. 특히 <strong>척추측만증 검사가
+      아닙니다</strong> — 실제 검사는 허리를 굽힌 자세에서 몸통이 비틀린 각도를 재고,
+      필요하면 X-ray로 확인해요. 웹캠으로는 그 각도를 잴 수 없어요.
+      등이나 허리에 통증이 있다면 의료 전문가와 상담해 주세요.</p>
+  </div>
+
+  <div class="btns">
+    <button class="p" id="btnCopy">결과 주소 복사</button>
+    <a href="../">좌우 균형 체크 홈</a>
+  </div>
+</div>
+
+<footer>
+  <div class="inner">
+    <p>이 웹사이트는 안동 ICT 연구회에서 생성형AI를 활용하여 제작했습니다.</p>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+/* =======================================================================
+   좌우 균형 체크 — 결과 페이지
+   측정 앱이 만든 주소(#s=..&l=..&sh=..&pv=..&sf=..)를 읽어 결과를 보여준다.
+   값이 없으면 안내만 띄우고 스트레칭 가이드는 그대로 보여준다
+   (측정하지 않은 사람도 이 페이지를 쓸 수 있어야 한다).
+   ======================================================================= */
+(function(){
+  'use strict';
+  var $ = function(s){ return document.querySelector(s); };
+
+  /* 주소는 해시(#)로 오지만, QR 앱이나 메신저가 ? 로 바꿔 넘기는 경우가 있어
+     둘 다 읽는다. 먼저 찾은 쪽을 쓴다(거북목 결과 페이지와 같은 처리). */
+  function readParams(){
+    var out = {};
+    [location.hash.replace(/^#/,''), location.search.replace(/^\?/,'')].forEach(function(raw){
+      if(!raw) return;
+      new URLSearchParams(raw).forEach(function(v,k){ if(out[k]===undefined) out[k]=v; });
+    });
+    return out;
+  }
+  function num(v){
+    if(v === undefined || v === null || v === '') return null;
+    var n = parseFloat(v);
+    return isFinite(n) ? n : null;
+  }
+
+  /* txt 는 글자·테두리용(배경 위에서 읽히도록 조정된 색), bar 는 띠·눈금용 원색이다.
+     둘을 섞어 쓰면 노란 단계에서 대비가 무너진다. */
+  var LEVELS = {
+    good:    {name:'좌우 균형 양호', short:'좌우가 잘 맞아요',   txt:'--l1-txt',
+              desc:'어깨와 골반의 좌우 차이가 거의 없어요. 지금 자세 습관을 그대로 유지해 주세요.'},
+    watch:   {name:'관찰 권장',      short:'조금 치우쳐 있어요', txt:'--l2-txt',
+              desc:'한쪽으로 치우친 모습이 조금 보여요. 가방을 양쪽으로 번갈아 메고, 짝다리를 줄여 보세요.'},
+    consult: {name:'상담 권유',      short:'차이가 뚜렷해요',    txt:'--l3-txt',
+              desc:'좌우 차이가 뚜렷하게 측정됐어요. 통증이 함께 있다면 의료 전문가와 상담해 보세요.'}
+  };
+  /* 단계 이름이 주소에 없거나 모르는 값이면 점수로 되돌려 정한다.
+     측정 앱과 경계(80 / 60)를 반드시 같게 유지할 것 — 어긋나면 같은 점수가
+     앱과 이 페이지에서 다른 단계로 보인다. */
+  function levelOf(score, key){
+    if(LEVELS[key]) return LEVELS[key];
+    return score >= 80 ? LEVELS.good : score >= 60 ? LEVELS.watch : LEVELS.consult;
+  }
+
+  /* 불감대 — 측정 앱의 기본값과 같게 둔다. 이 안이면 '좌우 비슷'으로 적어
+     1~2° 흔들림을 방향이 있는 것처럼 말하지 않는다. */
+  var DZ = {sh:1.5, pv:2.0, sf:3.0};
+  function sided(v, dz, unit, hi, lo){
+    var a = Math.abs(v);
+    var txt = a.toFixed(1) + unit;
+    var side = a <= dz ? '좌우 비슷' : (v > 0 ? hi : lo);
+    return txt + '<em>' + side + '</em>';
+  }
+
+  var p = readParams();
+  var score = num(p.s);
+  var has = score !== null;
+
+  if(has){
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    var lv = levelOf(score, p.l);
+
+    $('#scorecard').hidden = false;
+    $('#funcard').hidden = false;
+    $('#lvchip').textContent = lv.name;
+    $('#lvchip').style.color = 'var(' + lv.txt + ')';   /* 테두리는 currentColor 로 따라온다 */
+    $('#score').textContent = score;
+    $('#lvshort').textContent = lv.short;
+    $('#lvshort').style.color = 'var(' + lv.txt + ')';
+    $('#lvdesc').textContent = lv.desc;
+    $('#pin').style.left = score + '%';
+
+    $('#funPct').textContent = score + '%';
+    $('#funSub').textContent = score >= 95
+      ? '거의 완벽한 대칭이에요. 사실 사람의 몸은 원래 좌우가 조금씩 다릅니다!'
+      : '사람의 몸은 원래 좌우가 완전히 같지 않아요. 재미로만 봐 주세요.';
+
+    var sh = num(p.sh), pv = num(p.pv), sf = num(p.sf);
+    if(sh !== null || pv !== null || sf !== null){
+      $('#valuecard').hidden = false;
+      if(sh !== null) $('#vSh').innerHTML = sided(sh, DZ.sh, '°', '오른쪽이 높음', '왼쪽이 높음');
+      if(pv !== null) $('#vPv').innerHTML = sided(pv, DZ.pv, '°', '오른쪽이 높음', '왼쪽이 높음');
+      if(sf !== null) $('#vSf').innerHTML = sided(sf, DZ.sf, '%', '오른쪽으로', '왼쪽으로');
+    }
+    document.title = '좌우 균형 ' + score + '점 · ' + lv.name;
+  }else{
+    $('#noparam').hidden = false;
+  }
+
+  /* ----- 스트레칭 -----
+     높은 쪽 어깨는 '올리는 근육이 짧아진' 쪽이라 늘여주고, 낮은 쪽은 받쳐주는
+     운동을 한다. 방향을 모르면(불감대 안이거나 값이 없으면) 양쪽을 같이 한다. */
+  var EX = [
+    {t:'목 옆선 늘이기', dose:'20초 × 2회',
+     d:'고개를 한쪽으로 천천히 기울여 반대쪽 목·어깨 옆선이 당기는 느낌에서 멈춰요. 어깨는 내린 채로 유지해요.',
+     sided:true, which:'high'},
+    {t:'어깨 으쓱 내리기', dose:'10회',
+     d:'양 어깨를 귀 쪽으로 들어 올렸다가 숨을 내쉬며 천천히 끝까지 내려요. 올라가 있는 쪽을 특히 길게 내려요.',
+     sided:true, which:'high'},
+    {t:'옆구리 늘이기', dose:'20초 × 2회',
+     d:'한 손을 머리 위로 올리고 몸통을 반대쪽으로 기울여요. 골반은 움직이지 않게 고정해요.',
+     sided:true, which:'shiftTo'},
+    {t:'한 발 서기로 균형 잡기', dose:'20초 × 양쪽',
+     d:'한 발로 서서 골반이 옆으로 빠지지 않게 버텨요. 흔들리는 쪽이 보통 약한 쪽이에요.',
+     sided:false},
+    {t:'벽에 등 대고 서기', dose:'1분',
+     d:'뒤통수·등·엉덩이를 벽에 붙이고 양 어깨를 벽에 고르게 붙여요. 한쪽이 잘 안 붙으면 그쪽이 굳은 쪽이에요.',
+     sided:false}
+  ];
+
+  var shv = num(p.sh), sfv = num(p.sf);
+  function sideWord(kind){
+    if(kind === 'high'){
+      if(shv === null || Math.abs(shv) <= DZ.sh) return null;
+      return shv > 0 ? '올라가 있는 오른쪽을 먼저' : '올라가 있는 왼쪽을 먼저';
+    }
+    if(kind === 'shiftTo'){
+      if(sfv === null || Math.abs(sfv) <= DZ.sf) return null;
+      /* 몸통이 오른쪽으로 치우쳤으면 오른쪽 옆구리가 짧아진 상태 → 그쪽을 늘인다 */
+      return sfv > 0 ? '치우친 오른쪽 옆구리를 먼저' : '치우친 왼쪽 옆구리를 먼저';
+    }
+    return null;
+  }
+
+  $('#exercises').innerHTML = EX.map(function(e){
+    var side = e.sided ? sideWord(e.which) : null;
+    return '<div class="ex"><h3>' + e.t + '<span class="dose">' + e.dose + '</span></h3>' +
+           '<p>' + e.d + '</p>' +
+           (side ? '<span class="side">' + side + '</span>' : '') +
+           '</div>';
+  }).join('');
+
+  if(has && (shv === null || Math.abs(shv) <= DZ.sh)){
+    $('#planline').textContent = '좌우 차이가 크지 않아 어느 쪽을 먼저 할지 따로 정하지 않았어요. 양쪽을 고르게 해 주세요.';
+  }else if(!has){
+    $('#planline').textContent = '측정하지 않아도 괜찮아요. 양쪽을 고르게 하면 됩니다.';
+  }
+
+  /* ----- 생활 습관 ----- */
+  var CHK = [
+    '가방은 한쪽으로만 메지 말고 번갈아 메거나 배낭을 써요.',
+    '서 있을 때 한쪽 다리에만 체중을 싣는 짝다리를 줄여요.',
+    '의자에 앉을 때 다리를 꼬지 말고 양발을 바닥에 붙여요.',
+    '책상 모니터를 몸 정중앙에 두어 몸을 비틀지 않게 해요.',
+    '소파에서 팔걸이에 기대 비스듬히 눕는 자세를 오래 두지 않아요.',
+    '한 시간에 한 번은 일어나 양쪽으로 몸을 펴 줘요.'
+  ];
+  var check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+              'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+              '<path d="M20 6L9 17l-5-5"/></svg>';
+  $('#chk').innerHTML = CHK.map(function(t){
+    return '<li>' + check + '<span>' + t + '</span></li>';
+  }).join('');
+
+  /* ----- 주소 복사 ----- */
+  var toastTimer;
+  function toast(msg){
+    var t = $('#toast');
+    t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('on'); }, 2000);
+  }
+  $('#btnCopy').addEventListener('click', function(){
+    var url = location.href;
+    /* navigator.clipboard 는 보안 컨텍스트에서만 동작한다. 실패하면 주소를 보여줘
+       직접 복사할 수 있게 한다 — 부스에서 조용히 아무 일도 안 일어나면 안 된다. */
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(url)
+        .then(function(){ toast('결과 주소를 복사했어요'); })
+        .catch(function(){ window.prompt('이 주소를 복사하세요', url); });
+    }else{
+      window.prompt('이 주소를 복사하세요', url);
+    }
+  });
+
+  /* 같은 페이지에서 해시만 바뀌면(시작 페이지의 단계 미리보기 링크) 다시 그린다 */
+  window.addEventListener('hashchange', function(){ location.reload(); });
+})();
+</script>
+</body>
+</html>

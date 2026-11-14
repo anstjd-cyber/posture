@@ -1,0 +1,1378 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>좌우 균형 체크</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#141b33;
+    --fg:#eef2ff; --muted:#93a0c8;
+    --accent:#38bdf8;
+    /* 3단계 색. 거북목의 A~E 5단계 색에서 양 끝과 가운데만 가져왔다.
+       가장 낮은 단계에 빨강(--gE)을 쓰지 않는다 — 질병 판정처럼 읽히기 때문이다. */
+    --lv1:#34d399; --lv2:#fbbf24; --lv3:#fb923c;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:"Pretendard","Malgun Gothic","Segoe UI",system-ui,sans-serif;
+    overflow:hidden; user-select:none; -webkit-tap-highlight-color:transparent;
+  }
+  .view{position:fixed;inset:0;display:none;flex-direction:column}
+  .view.on{display:flex}
+
+  /* ---------- 대기화면 ---------- */
+  #view-attract{align-items:center;justify-content:center;gap:clamp(36px,6vh,64px);
+    text-align:center;cursor:pointer;padding:6vh 5vw 7vh;
+    background:radial-gradient(1200px 700px at 50% 30%,#1b2546 0%,var(--bg) 70%)}
+  .a-hero{display:flex;flex-direction:column;align-items:center}
+  #view-attract h1{font-size:clamp(31px,5.3vw,72px);margin:0 0 14px;letter-spacing:-.02em}
+  #view-attract .sub{font-size:clamp(15px,1.7vw,22px);color:#fff;margin:0 0 34px}
+  .pulse{display:inline-flex;align-items:center;gap:10px;
+    background:var(--accent);color:#06121f;font-weight:800;
+    font-size:clamp(16px,1.9vw,23px);padding:14px 34px;border-radius:999px;
+    animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(56,189,248,.38)}
+    50%{transform:scale(1.025);box-shadow:0 0 0 13px rgba(56,189,248,0)}}
+  .autohint{margin-top:14px;font-size:clamp(13px,1.2vw,16px);color:var(--muted)}
+  .steps{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+    list-style:none;margin:0;padding:0}
+  .steps li{display:flex;align-items:center;gap:10px;color:#fff;
+    font-size:clamp(13px,1.3vw,17px)}
+  .steps li i{flex:none;width:clamp(22px,2.2vw,30px);height:clamp(22px,2.2vw,30px);
+    border-radius:999px;border:1px solid var(--accent);color:var(--accent);
+    display:grid;place-items:center;font-style:normal;font-weight:800;
+    font-size:clamp(11px,1.1vw,14px)}
+  .steps li::after{content:'';width:clamp(18px,4vw,64px);height:1px;
+    background:#ffffff2e;margin:0 clamp(10px,1.4vw,20px)}
+  .steps li:last-child::after{display:none}
+
+  #homelink{position:fixed;z-index:6;top:18px;right:20px;display:none;
+    padding:12px 26px;border-radius:999px;border:1px solid #ffffff26;
+    background:#000000a6;color:var(--muted);text-decoration:none;
+    font-size:20px;font-weight:700;backdrop-filter:blur(6px)}
+  #homelink.on{display:block}
+  #homelink.low{top:auto;bottom:72px;right:34px}
+  @media (hover:hover){ #homelink:hover{color:var(--fg);border-color:var(--accent)} }
+  #homelink:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  /* ---------- 측정화면 ---------- */
+  #view-measure{align-items:center;justify-content:center}
+  #stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000}
+  #cv{max-width:100%;max-height:100%;display:block}
+  #video{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .hud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+  .hud-top{padding:26px 34px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+  .stagechip{background:#000000a6;border:1px solid #ffffff26;border-radius:999px;
+    padding:12px 26px;font-size:20px;font-weight:700;backdrop-filter:blur(6px);transition:.2s}
+  .stagechip em{color:var(--accent);font-style:normal}
+  .stagechip.good{border-color:#34d399;color:#bdf5de}
+  .stagechip.bad{border-color:#fbbf2466;color:#ffe6b0}
+  .hud-bottom{padding:30px 34px 52px;text-align:center}
+  #prompt{font-size:clamp(24px,3.4vw,44px);font-weight:800;line-height:1.3;
+    text-shadow:0 3px 24px #000c;margin-bottom:14px}
+  #hint{font-size:clamp(15px,1.7vw,22px);color:#cdd7f5;text-shadow:0 2px 14px #000c;min-height:1.4em}
+  #bigcount{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    font-size:min(42vh,340px);font-weight:900;color:#fff;text-shadow:0 0 70px #000;opacity:.92}
+  #bigcount.on{display:flex}
+  #ring{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);
+    width:320px;max-width:60vw;height:12px;border-radius:99px;background:#ffffff26;overflow:hidden;display:none}
+  #ring.on{display:block}
+  #ring i{display:block;height:100%;width:0%;background:var(--accent)}
+  /* 1단계가 끝나고 몸을 돌리는 동안 띄우는 큰 안내. 등을 보인 사람은 화면을 볼 수 없으므로
+     소리가 주된 안내이고, 이 화면은 옆에서 보는 운영자·구경꾼을 위한 것이다. */
+  #turn{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    flex-direction:column;gap:22px;background:#050a16d9;text-align:center;padding:30px}
+  #turn.on{display:flex}
+  #turn .big{font-size:clamp(30px,4.6vw,62px);font-weight:900;letter-spacing:-.02em}
+  #turn .sm{font-size:clamp(15px,1.8vw,23px);color:#cdd7f5;line-height:1.6}
+  #turn .arc{width:clamp(96px,13vw,170px);height:clamp(96px,13vw,170px);color:var(--accent)}
+
+  /* ---------- 결과화면 ---------- */
+  /* 고지 띠(#privacy)는 화면에 고정이라 .rwrap 의 padding 으로는 못 피한다 —
+     내용이 짧아 margin:auto 로 세로 가운데에 놓이면 패딩째 띠 위로 올라앉는다.
+     띠 높이만큼을 뷰 자체에서 빼둬야 가운데 정렬이 그 영역을 비켜간다. */
+  #view-result{overflow:auto;padding-bottom:60px}
+  .rwrap{margin:auto;width:100%;max-width:1120px;padding:40px 24px 48px}
+  .rhead{text-align:center;margin-bottom:28px}
+  .rhead h2{font-size:clamp(26px,3.4vw,42px);margin:0 0 6px}
+  .rhead p{color:var(--muted);margin:0;font-size:17px}
+  .rgrid{display:grid;grid-template-columns:1.1fr .95fr;gap:22px;align-items:start}
+  .card{background:var(--bg2);border:1px solid #ffffff14;border-radius:22px;padding:28px}
+  .scorebox{text-align:center}
+  .lvTag{display:inline-block;font-size:15px;font-weight:800;letter-spacing:.08em;
+    padding:8px 20px;border-radius:999px;margin-bottom:14px;color:#06121f}
+  .bignum{font-size:clamp(76px,13vw,150px);font-weight:900;line-height:.95;letter-spacing:-.04em}
+  .bignum small{font-size:.28em;font-weight:700;color:var(--muted);letter-spacing:0}
+  .lvName{font-size:clamp(22px,2.6vw,34px);font-weight:800;margin-top:10px}
+  .lvDesc{color:var(--muted);font-size:17px;margin-top:10px;line-height:1.6}
+  .meter{height:14px;border-radius:99px;overflow:hidden;
+    background:linear-gradient(90deg,var(--lv3),var(--lv2) 45%,var(--lv1))}
+  .meterwrap{position:relative;margin:30px 0 8px}
+  .meterpin{position:absolute;top:-8px;width:4px;height:30px;background:#fff;border-radius:3px;
+    box-shadow:0 0 0 3px #141b33;transform:translateX(-50%);transition:left .6s cubic-bezier(.2,.8,.2,1)}
+  /* 단계 경계(60점·80점)를 띠 위에 그어둔다. 눈금이 없으면 핀이 어느 단계에 있는지
+     색으로만 짐작해야 하고, 아래 글자가 균등 간격이라 경계를 잘못 읽게 된다. */
+  .metertick{position:absolute;top:0;width:2px;height:14px;background:#141b33;opacity:.75}
+  .meterlab{position:relative;height:17px;color:var(--muted);font-size:13px}
+  .meterlab span{position:absolute;white-space:nowrap;transform:translateX(-50%)}
+  .meterlab span:first-child{left:0;transform:none}
+  .meterlab span:last-child{left:auto;right:0;transform:none}
+  .rows{display:flex;flex-direction:column;gap:12px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:14px 18px;background:#ffffff0a;border-radius:14px}
+  .row .k{color:var(--muted);font-size:15px}
+  .row .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+  .row .side{font-size:13px;color:var(--muted);font-weight:700;margin-left:6px}
+  .badge{font-size:14px;font-weight:800;padding:6px 14px;border-radius:99px;color:#06121f}
+
+  /* 겹쳐보기 — 측정 순간의 정면 모습을 중심선 기준으로 접어 본다 */
+  .foldcard{grid-column:1 / -1}
+  .foldcard h3{margin:0 0 6px;font-size:21px}
+  .foldcard .fhint{color:var(--muted);font-size:15px;margin:0 0 18px;line-height:1.6}
+  #foldwrap{position:relative;width:100%;background:#000;border-radius:16px;overflow:hidden}
+  #fold{display:block;width:100%;height:auto}
+  .foldlegend{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;
+    margin-top:14px;font-size:14px;color:var(--muted)}
+  .foldlegend b{color:var(--fg);font-weight:700}
+  .foldlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;
+    margin-right:7px;vertical-align:-1px;font-style:normal}
+
+  /* 재미 요소 — 측정값과 섞이지 않도록 연한 상자로 분리한다(거북목과 같은 원칙) */
+  /* 겹쳐보기 사진이 없으면 그 칸이 통째로 접히므로, 위쪽 여백도 같이 거둔다 */
+  .foldcard.nofold .fun{margin-top:0}
+  .fun{margin-top:22px;background:#ffffff0a;border:1px dashed #ffffff26;
+    border-radius:18px;padding:22px 24px;text-align:center}
+  .funchip{display:inline-block;background:#ffffff1a;color:var(--muted);
+    font-size:12px;font-weight:800;letter-spacing:.1em;padding:5px 13px;
+    border-radius:999px;margin-bottom:12px}
+  .funbig{font-size:clamp(22px,3vw,34px);font-weight:900;letter-spacing:-.02em}
+  .funbig em{font-style:normal;color:var(--accent)}
+  .funsub{color:var(--muted);font-size:14px;margin-top:9px;line-height:1.6}
+
+  .qrcard{text-align:center;margin-top:24px}
+  .qrcard h3{margin:0 0 6px;font-size:20px}
+  .qrcard p{color:var(--muted);font-size:14px;margin:0 0 18px;line-height:1.6}
+  #qr{width:210px;height:210px;margin:0 auto;background:#fff;border-radius:16px;padding:12px;
+    display:grid;place-items:center;overflow:hidden}
+  #qr svg,#qr img{width:100%;height:100%;display:block;image-rendering:pixelated}
+  #qrfallback{font-size:11px;color:#06121f;word-break:break-all;line-height:1.5}
+  .rbtns{display:flex;gap:14px;justify-content:center;margin-top:30px;flex-wrap:wrap}
+  .btn{border:0;border-radius:999px;padding:18px 44px;font-size:19px;font-weight:800;cursor:pointer;font-family:inherit}
+  .btn.p{background:var(--accent);color:#06121f}
+  .btn.s{background:#ffffff14;color:var(--fg);border:1px solid #ffffff26}
+
+  /* 카메라 기울기 경고 — 운영자에게만 의미 있는 줄이라 눈에 띄되 작게 */
+  #camwarn{display:none;margin-top:18px;background:#fbbf241f;border:1px solid #fbbf2440;
+    color:#ffe6b0;border-radius:14px;padding:13px 18px;font-size:14px;line-height:1.6}
+  #camwarn.on{display:block}
+
+  /* ---------- 집계화면 ---------- */
+  #view-dashboard{overflow:auto}
+  .dwrap{margin:auto;width:100%;max-width:1240px;padding:46px 28px}
+  .dwrap h2{font-size:clamp(28px,3.6vw,46px);margin:0 0 4px}
+  .dwrap .dsub{color:var(--muted);margin:0 0 34px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-bottom:22px}
+  .kpi{background:var(--bg2);border:1px solid #ffffff14;border-radius:20px;padding:26px}
+  .kpi .k{color:var(--muted);font-size:14px;margin-bottom:8px}
+  .kpi .v{font-size:clamp(34px,4.4vw,56px);font-weight:900;letter-spacing:-.03em}
+  .kpi .v small{font-size:.38em;color:var(--muted);font-weight:700;margin-left:4px}
+  .distrow{display:flex;align-items:flex-end;gap:16px;height:210px;padding:0 6px}
+  .distcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;height:100%;justify-content:flex-end}
+  .distcol .bar{width:100%;border-radius:12px 12px 4px 4px;min-height:5px;transition:height .5s}
+  .distcol .lab{font-size:15px;font-weight:800;text-align:center}
+  .distcol .cnt{font-size:14px;color:var(--muted)}
+  .recent{margin-top:22px;display:flex;flex-direction:column;gap:8px}
+  .recent .r{display:grid;grid-template-columns:92px 1fr 64px 90px;gap:14px;align-items:center;
+    padding:12px 18px;background:#ffffff08;border-radius:12px;font-size:15px}
+  .recent .r .t{color:var(--muted);font-variant-numeric:tabular-nums}
+  .recent .r .b{height:9px;border-radius:99px;background:#ffffff1a;overflow:hidden}
+  .recent .r .b i{display:block;height:100%;background:var(--accent)}
+  .recent .r .sc{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+  .recent .r .gr{text-align:center;font-weight:800;font-size:13px}
+
+  /* ---------- 공통 ---------- */
+  #privacy{position:fixed;left:0;right:0;bottom:0;z-index:40;pointer-events:none;
+    padding:13px 20px;text-align:center;font-size:clamp(14px,1.25vw,19px);color:#f87171;
+    background:linear-gradient(transparent,#070b16cc)}
+  #privacy b{color:inherit;font-weight:inherit}
+  #panel-op{position:fixed;z-index:60;right:18px;bottom:18px;width:382px;max-height:86vh;overflow:auto;
+    background:#0f1730f2;border:1px solid #ffffff26;border-radius:18px;padding:20px;
+    backdrop-filter:blur(10px);font-size:14px}
+  #panel-op h3{margin:0 0 4px;font-size:17px}
+  #panel-op .ophint{color:var(--muted);font-size:12px;margin:0 0 16px;line-height:1.55}
+  #panel-op fieldset{border:1px solid #ffffff1f;border-radius:12px;padding:10px 14px 14px;margin:0 0 14px}
+  #panel-op legend{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.08em;padding:0 6px}
+  .f{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:9px 0}
+  .f label{color:#c3cfef}
+  .f input,.f select{background:#0a0f1f;border:1px solid #ffffff2b;color:var(--fg);border-radius:9px;
+    padding:8px 10px;font-size:14px;font-family:inherit;width:118px}
+  .f.col{flex-direction:column;align-items:stretch;gap:6px}
+  .f.col input,.f.col select{width:100%}
+  .opbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .opbtns button{flex:1;min-width:104px;border:0;border-radius:10px;padding:11px;font-weight:800;
+    cursor:pointer;font-family:inherit;font-size:13px;background:#ffffff17;color:var(--fg)}
+  .opbtns button.p{background:var(--accent);color:#06121f}
+  .opbtns button.d{background:#f8717126;color:#ffc4c4}
+  #calib{position:fixed;z-index:55;left:18px;top:18px;display:none;
+    background:#050a16e0;border:1px solid #ffffff26;border-radius:14px;padding:16px 18px;
+    font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;line-height:1.85;min-width:344px}
+  #calib.on{display:block}
+  #calib h4{margin:0 0 8px;font-size:12px;color:var(--accent);letter-spacing:.1em}
+  #calib .cl{display:flex;justify-content:space-between;gap:18px}
+  #calib .cl span{color:var(--muted)}
+  #calib .cl b{font-variant-numeric:tabular-nums}
+  #toast{position:fixed;z-index:70;left:50%;bottom:70px;transform:translateX(-50%) translateY(26px);
+    background:#eef2ff;color:#0b1020;padding:14px 28px;border-radius:999px;font-weight:800;
+    opacity:0;transition:.25s;pointer-events:none;max-width:84vw;text-align:center}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  #boot{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:var(--bg);
+    text-align:center;padding:30px}
+  #boot.off{display:none}
+  #boot .sp{width:46px;height:46px;border:4px solid #ffffff26;border-top-color:var(--accent);
+    border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 22px}
+  #boot.err .sp{display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #bootmsg{font-size:19px}
+  #booterr{color:#ffc4c4;font-size:15px;margin-top:16px;line-height:1.8;max-width:640px;display:none;text-align:left}
+  #booterr code{background:#ffffff14;padding:2px 7px;border-radius:5px;font-size:14px}
+  @media (max-width:900px){.rgrid{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important;transition:none !important} }
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div>
+    <div class="sp"></div>
+    <div id="bootmsg">준비 중…</div>
+    <div id="booterr"></div>
+  </div>
+</div>
+
+<a id="homelink" href="../">← 시작 페이지</a>
+
+<!-- ============ 대기화면 ============ -->
+<section id="view-attract" class="view">
+  <div class="a-hero">
+    <h1>내 몸은 좌우가 얼마나 닮았을까?</h1>
+    <div class="sub">웹캠으로 어깨·골반의 좌우 균형을 확인해 보세요. 약 40초면 충분합니다.</div>
+    <div class="pulse" id="startHint">좌우 균형 체크 시작하기</div>
+    <div class="autohint" id="autoHint"></div>
+  </div>
+  <ol class="steps">
+    <li><i>1</i><span>바닥 발자국에 서기</span></li>
+    <li><i>2</i><span>정면으로 — 1차 측정</span></li>
+    <li><i>3</i><span>뒤로 돌아 — 2차 측정</span></li>
+  </ol>
+</section>
+
+<!-- ============ 측정화면 ============ -->
+<section id="view-measure" class="view">
+  <div id="stage">
+    <video id="video" playsinline muted></video>
+    <canvas id="cv"></canvas>
+    <div class="hud">
+      <div class="hud-top">
+        <div class="stagechip"><em id="stagenum">1</em> / 2 &nbsp;·&nbsp; <span id="stagename">정면 측정</span></div>
+        <div class="stagechip" id="qualitychip">자세 확인 중</div>
+      </div>
+      <div class="hud-bottom">
+        <div id="prompt">카메라 앞에 서 주세요</div>
+        <div id="hint"></div>
+      </div>
+    </div>
+    <div id="ring"><i></i></div>
+    <div id="bigcount">3</div>
+    <div id="turn">
+      <svg class="arc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 12a8 8 0 1 1 3.1 6.3"/><path d="M4 7v5h5"/>
+      </svg>
+      <div class="big">뒤로 돌아 주세요</div>
+      <div class="sm">같은 자리에서 몸만 180° 돌려<br>등을 카메라 쪽으로 보여주세요</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 결과화면 ============ -->
+<section id="view-result" class="view">
+  <div class="rwrap">
+    <div class="rhead">
+      <h2>좌우 균형 결과</h2>
+      <p id="rankline"></p>
+    </div>
+    <div class="rgrid">
+      <div class="card scorebox">
+        <div class="lvTag" id="lvTag">단계</div>
+        <div class="bignum"><span id="lvScore">0</span><small>점</small></div>
+        <div class="lvName" id="lvName"></div>
+        <div class="lvDesc" id="lvDesc"></div>
+        <div class="meterwrap">
+          <div class="meter"></div>
+          <div class="metertick" style="left:60%"></div>
+          <div class="metertick" style="left:80%"></div>
+          <div class="meterpin" id="lvPin" style="left:0%"></div>
+        </div>
+        <!-- 글자는 각 단계 구간의 가운데에 놓는다 (0~59 / 60~79 / 80~100) -->
+        <div class="meterlab"><span>상담 권유</span><span style="left:70%">관찰 권장</span><span>양호</span></div>
+      </div>
+
+      <div class="card">
+        <div class="rows">
+          <div class="row"><span class="k">어깨 높이차</span><span class="v" id="mSh">–</span></div>
+          <div class="row"><span class="k">골반 높이차</span><span class="v" id="mPv">–</span></div>
+          <div class="row"><span class="k">몸통 중심 치우침</span><span class="v" id="mSf">–</span></div>
+          <div class="row"><span class="k">카메라 기울기 (보정됨)</span><span class="v" id="mCam">–</span></div>
+        </div>
+        <div id="camwarn"></div>
+        <div class="qrcard" id="qrcard">
+          <h3>결과 가져가기</h3>
+          <p>QR을 휴대폰으로 스캔하면<br>내 결과를 다시 볼 수 있어요.</p>
+          <div id="qr"><div id="qrfallback"></div></div>
+        </div>
+      </div>
+
+      <div class="card foldcard">
+        <!-- 겹쳐보기는 측정 순간의 프레임이 있을 때만 의미가 있다. 사진이 없으면
+             제목·설명·범례까지 통째로 접는다(설명만 남으면 무엇을 보라는 건지 알 수 없다). -->
+        <div id="foldsec">
+          <h3>좌우를 접어서 겹쳐보기</h3>
+          <p class="fhint">1차(정면) 측정 순간의 모습입니다. 가운데 선을 기준으로
+            <b>왼쪽 절반을 뒤집어 오른쪽에 포개</b> 놓았어요.
+            윤곽이 어긋난 곳이 좌우 차이가 큰 부분입니다.</p>
+          <div id="foldwrap"><canvas id="fold"></canvas></div>
+          <div class="foldlegend">
+            <span><i style="background:#ffffffcc"></i>가운데 선 = 몸의 중심</span>
+            <span><i style="background:#38bdf8"></i>겹쳐 놓은 왼쪽(반대편) 모습</span>
+            <span><b>카메라 기울기는 미리 바로잡았습니다</b></span>
+          </div>
+        </div>
+        <div class="fun">
+          <div class="funchip">재미로 보는</div>
+          <div class="funbig">당신의 몸은 좌우가 <em id="funPct">0%</em> 닮았습니다</div>
+          <div class="funsub" id="funSub"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rbtns">
+      <button class="btn p" id="btnAgain">다시 측정</button>
+      <button class="btn s" id="btnDone">처음으로</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 집계화면 ============ -->
+<section id="view-dashboard" class="view">
+  <div class="dwrap">
+    <h2>오늘의 좌우 균형 현황</h2>
+    <p class="dsub">우리 부스에서 측정한 결과입니다 · 영상과 개인정보는 저장하지 않습니다</p>
+    <div class="kpis">
+      <div class="kpi"><div class="k">오늘 측정</div><div class="v"><span id="dN">0</span><small>명</small></div></div>
+      <div class="kpi"><div class="k">평균 점수</div><div class="v"><span id="dAvg">0</span><small>점</small></div></div>
+      <div class="kpi"><div class="k">평균 어깨 높이차</div><div class="v"><span id="dSh">0</span><small>°</small></div></div>
+      <div class="kpi"><div class="k">평균 카메라 기울기</div><div class="v"><span id="dCam">0</span><small>°</small></div></div>
+    </div>
+    <div class="kpi">
+      <div class="k" style="margin-bottom:18px">단계 분포</div>
+      <div class="distrow" id="dDist"></div>
+    </div>
+    <div class="recent" id="dRecent"></div>
+  </div>
+</section>
+
+<div id="calib"></div>
+<div id="panel-op" hidden></div>
+<div id="toast"></div>
+<div id="privacy">
+  촬영 영상은 <b>기기 안에서만 처리되며 저장·전송되지 않습니다</b> ·
+  본 측정은 <b>의료기기가 아니며 진단 목적으로 사용할 수 없습니다</b>
+</div>
+
+<script type="module">
+/* =======================================================================
+   좌우 균형 체크 — 측정 앱
+   - 모든 추론은 브라우저 안에서 실행됩니다 (영상 저장/전송 없음)
+   - 1단계 정면 · 2단계 180° 뒤돌기 → 두 번 재서 카메라 기울기를 분리한다
+   - 운영자 패널: O 키 / 캘리브레이션 오버레이: C 키 / 집계화면: D 키
+
+   ■ 이름에 '척추측만증'을 쓰지 않는 이유
+     실제 측만증 선별은 전굴검사 + 측만계로 ATR(몸통회전각)을 재고,
+     확진 Cobb 각은 X-ray 에서만 나온다. 웹캠은 깊이를 못 보므로 ATR 을
+     아예 잴 수 없고, 여기서 재는 어깨·골반 높이차는 Cobb 각과 상관이 낮다.
+     정상인도 1~3° 높이차는 흔하다(주로 쓰는 손의 영향). 질병 선별로
+     이름 붙이면 과장일 뿐 아니라 의료기기(SaMD)로 읽힐 소지도 생긴다.
+
+   ■ 핵심 아이디어 — 180° 2회 측정으로 카메라 기울기를 분리한다
+     노트북 뚜껑이 2° 기울면 측정값 전체가 2° 치우친 채 나오고, 1회
+     측정으로는 그걸 걸러낼 방법이 없다. 그런데 몸을 180° 돌리면
+     '진짜 몸의 기울기'는 화면에서 부호가 뒤집히고 '카메라 기울기'는
+     그대로다. 그래서
+
+         정면  m₁ = +t + θ
+         뒤돌아 m₂ = −t + θ
+         ──────────────────────
+         실제 기울기 t = (m₁ − m₂) / 2
+         카메라 기울기 θ = (m₁ + m₂) / 2
+
+     거북목에서 '귀가 어깨 바로 위 = 정확히 90°' 를 고정 기준점으로 삼았던
+     것과 같은 역할이다. 사람과 무관한 기준이 생기므로 현장 캘리브레이션
+     없이도 장비 문제를 분리할 수 있다. θ 는 버리지 않고 운영자 경고로 쓴다.
+   ======================================================================= */
+
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.min(b, Math.max(a,v));
+const deg = r => r*180/Math.PI;
+const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+const median = a => {
+  if(!a.length) return NaN;
+  const s=[...a].sort((x,y)=>x-y), m=s.length>>1;
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+};
+
+/* ---------------------------------------------------------------- 설정 */
+const CFG_KEY='bal.cfg', REC_KEY='bal.records';
+
+const CFG_DEFAULT = {
+  /* 감점 설계 — 1차 프로토타입의 `100 − 어깨×7 − 골반×7 − …` 는 너무 가혹했다.
+     어깨 2° + 골반 1.5° 인 평범한 사람이 75점(= '주의' 문턱)을 받았다.
+     웹캠 랜드마크는 그 자체로 1~2° 흔들리고 정상인의 좌우차도 1~3° 이므로,
+     그만큼은 아예 감점하지 않는 불감대(dz)를 두고 그 위로만 가중한다. */
+  shDz: 1.5,  shW: 6,     // 어깨 높이차: 불감대(°) / 1° 당 감점  ← 랜드마크 신뢰도 최상, 주력 지표
+  pvDz: 2.0,  pvW: 3,     // 골반 높이차: 엉덩관절점은 옷에 가린 추정값이라 노이즈가 커서 비중을 낮춘다
+  sfDz: 3.0,  sfW: 1.5,   // 몸통 중심 치우침(%)
+
+  /* 정면/후면 판정: 어깨폭 / 몸통길이 의 하한.
+     거북목은 '목+머리 길이'로 나눠 정면이 1.3~1.5 였지만, 여기서는 뒤돌아선 자세를
+     재야 해서 코를 쓸 수 없고 몸통 길이로 나눈다 — 그래서 정면이어도 값이 1 을 넘지 않는다.
+     어깨너비 약 38cm / 몸통 약 45~50cm → 정면 0.75~1.0, 측면 0.2 근처.
+     사람마다 0.75~1.0 로 흩어지므로 임계는 넉넉히 잡고, 현장에서 한 번 확인한다
+     (C 키 캘리브레이션 창의 '시야 비율'을 정면으로 서서 읽고 그 값의 85% 정도로 맞춘다). */
+  frontViewMin: 0.62,
+  minSamples: 20,         // 측정창 내 최소 유효 프레임
+  gateMs: 1200,           // 올바른 자세 유지 시간 → 카운트다운 진입
+  countdownMs: 3000,
+  measureMs: 2500,
+  turnMs: 4500,           // 1단계 후 몸을 돌릴 시간 (안내 화면이 떠 있는 동안)
+
+  camWarnDeg: 1.5,        // 이 이상 기울면 운영자에게 카메라를 세우라고 알린다
+  idleEnterMs: 800,
+  idleAbortMs: 18000,
+  /* QR 은 체험자의 휴대폰이 읽으므로 상대 경로가 아니라 공개 주소여야 한다
+     (부스 노트북의 localhost 는 휴대폰에서 열리지 않는다). 그래서 로컬 실행
+     중에도 공개본 결과 페이지를 가리킨다 — 결과 페이지는 주소에 담긴 숫자만으로
+     그려지므로 서버가 따로 필요 없다. 비우면 QR 칸이 통째로 숨는다. */
+  resultBaseUrl: 'https://anstjd-cyber.github.io/posture/scoliosis/result/',
+  sound: true,
+  soundVol: 0.55,
+  mirror: true,           // 정면 체험은 거울처럼 보이는 쪽이 자연스럽다 (측정값에는 영향 없음)
+  camId: ''
+};
+let CFG = {...CFG_DEFAULT, ...safeParse(localStorage.getItem(CFG_KEY), {})};
+function safeParse(s,d){ try{ return JSON.parse(s ?? '') ?? d; }catch{ return d; } }
+const saveCfg = () => localStorage.setItem(CFG_KEY, JSON.stringify(CFG));
+
+/* ------------------------------------------------------------ 기록 저장 */
+const loadRecs = () => safeParse(localStorage.getItem(REC_KEY), []);
+const saveRecs = r => localStorage.setItem(REC_KEY, JSON.stringify(r.slice(-5000)));
+const dayKey = d => {
+  const t = new Date(d);
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+};
+const todayRecs = () => { const k=dayKey(Date.now()); return loadRecs().filter(r=>dayKey(r.ts)===k); };
+
+/* --------------------------------------------------------------- 단계
+   거북목의 A~E 5단계를 그대로 쓰면 "E등급"이 병명처럼 읽힌다.
+   좌우 균형은 질병 판정이 아니므로 3단계로 줄이고, 가장 낮은 단계도
+   '상담 권유'까지만 말한다(진단하지 않는다). 점수는 0~100 을 그대로 쓴다. */
+/* name 은 색 칩에, short 는 큰 글씨 아래 한 줄에 쓴다. 둘이 같으면 같은 말이
+   두 번 보이므로 서로 다른 말을 담는다(칩=단계 이름, 한 줄=무슨 뜻인지). */
+const LEVELS = [
+  {min:80, key:'good',    name:'좌우 균형 양호', short:'좌우가 잘 맞아요',   color:'var(--lv1)',
+   desc:'어깨와 골반의 좌우 차이가 거의 없어요.<br>지금 자세 습관을 그대로 유지해 주세요.'},
+  {min:60, key:'watch',   name:'관찰 권장',      short:'조금 치우쳐 있어요', color:'var(--lv2)',
+   desc:'한쪽으로 치우친 모습이 조금 보여요.<br>가방을 양쪽으로 번갈아 메고, 짝다리를 줄여 보세요.'},
+  {min:0,  key:'consult', name:'상담 권유',      short:'차이가 뚜렷해요',    color:'var(--lv3)',
+   desc:'좌우 차이가 뚜렷하게 측정됐어요.<br>통증이 함께 있다면 의료 전문가와 상담해 보세요.'}
+];
+const levelOf = score => LEVELS.find(l => score >= l.min) || LEVELS[LEVELS.length-1];
+
+/* 감점은 불감대를 넘은 만큼에만 매긴다. 불감대가 없으면 똑바로 선 사람도
+   전부 '기울어짐'으로 나와 지표 자체를 못 믿게 된다. */
+const over = (v, dz) => Math.max(0, Math.abs(v) - dz);
+const scoreOf = (sh, pv, sf) => Math.round(clamp(
+  100 - over(sh, CFG.shDz) * CFG.shW
+      - over(pv, CFG.pvDz) * CFG.pvW
+      - over(sf, CFG.sfDz) * CFG.sfW, 0, 100));
+
+/* --------------------------------------------- 랜드마크 → 측정값 변환 */
+const IX = {NOSE:0, LSH:11, RSH:12, LHIP:23, RHIP:24};
+const P = (lm,i,W,H) => ({x:lm[i].x*W, y:lm[i].y*H, v:lm[i].visibility ?? 0});
+
+/* 기울기는 '이미지 좌표에서 왼쪽 점 → 오른쪽 점' 순서로 잰다.
+   MediaPipe 의 left/right 는 사람 기준 해부학적 이름이라, 뒤돌아서면 라벨이
+   바뀔 수도 있고 안 바뀔 수도 있다(모델 추정값이다). 화면 좌표 순서로 재면
+   라벨이 어떻든 결과가 같고, 180° 상쇄 계산도 라벨과 무관하게 성립한다.
+   + 값 = 화면 오른쪽 점이 더 아래(y 는 아래로 증가). */
+function tiltImg(p, q){
+  const [L, R] = p.x <= q.x ? [p, q] : [q, p];
+  return deg(Math.atan2(R.y - L.y, R.x - L.x));
+}
+
+function metricsOf(lm, W, H){
+  const nose=P(lm,IX.NOSE,W,H);
+  const lsh=P(lm,IX.LSH,W,H), rsh=P(lm,IX.RSH,W,H);
+  const lhip=P(lm,IX.LHIP,W,H), rhip=P(lm,IX.RHIP,W,H);
+  const midSh = {x:(lsh.x+rsh.x)/2, y:(lsh.y+rsh.y)/2};
+  const midHip= {x:(lhip.x+rhip.x)/2, y:(lhip.y+rhip.y)/2};
+
+  /* 정규화 기준은 몸통 길이(어깨중점~골반중점)다. 거북목은 '목+머리 길이'를 썼지만
+     여기서는 뒤돌아선 자세에서 코가 안 보여 쓸 수 없다. 몸통은 양쪽 자세 모두에서 보인다. */
+  const torso = dist(midSh, midHip);
+  const shW = Math.abs(lsh.x - rsh.x);
+  if(torso < 12) return null;
+
+  // 어깨폭 / 몸통길이 → 몸통이 얼마나 돌아가 있는지. 정면·후면 ≈1.1~1.5, 측면 ≈0.3
+  const viewRatio = shW / torso;
+  const conf = Math.min(lsh.v, rsh.v, lhip.v, rhip.v);
+
+  const shTilt = tiltImg(lsh, rsh);
+  const pvTilt = tiltImg(lhip, rhip);
+  // 어깨중점이 골반중점보다 화면 오른쪽에 있으면 +. 어깨폭으로 나눠 키·거리와 무관하게 만든다.
+  const shift  = (midSh.x - midHip.x) / Math.max(shW, 1) * 100;
+
+  /* 카메라를 보고 있는지 추정 — 사람 기준 왼쪽 어깨가 화면 오른쪽에 있으면 정면이다.
+     측정식에는 쓰지 않고 안내 문구에만 쓴다(모델 추정이라 틀릴 수 있기 때문). */
+  const facingCam = lsh.x > rsh.x;
+
+  return {viewRatio, conf, torso, shW, shTilt, pvTilt, shift, facingCam,
+          lsh, rsh, lhip, rhip, midSh, midHip, nose};
+}
+
+/* --------------------------------------------------------- 상태 머신 */
+const ST = {IDLE:'IDLE', GATE:'GATE', COUNT:'COUNT', MEASURE:'MEASURE', TURN:'TURN', RESULT:'RESULT'};
+let st = ST.IDLE, stage = 1, tMark = 0, held = 0, lost = 0, absent = 0;
+let samples = [], frontResult = null, lastMetrics = null;
+let landmarker = null, running = false, lastVideoTs = -1;
+let assetMode = '-';
+
+const video = $('#video'), cv = $('#cv'), ctx = cv.getContext('2d');
+/* 겹쳐보기용 정지 화면. 측정 순간의 프레임을 메모리에만 담아두고
+   결과화면을 떠날 때 지운다 — 파일로 저장하거나 전송하지 않는다. */
+const snap = document.createElement('canvas');
+const sctx = snap.getContext('2d');
+let snapInfo = null;
+
+const HAS_PARENT = /^https?:$/.test(location.protocol) &&
+                   location.pathname.replace(/[^/]*$/, '') !== '/';
+/* 부스에서는 발자국에 선 사람을 감지해 자동 시작한다. 공개본은 책상에 앉은 사람이
+   이미 잡혀 있어 그대로 두면 누르지도 않았는데 측정이 시작된다 — 반드시 눌러야 한다. */
+const KIOSK = !HAS_PARENT;
+$('#autoHint').textContent = KIOSK ? '발자국에 서면 자동으로 시작됩니다' : '';
+
+/* ------------------------------------------------------------ 소리 안내
+   2단계는 체험자가 등을 보이고 서기 때문에 화면을 전혀 볼 수 없다.
+   거북목(옆으로 서기)보다 더 소리에 의존하므로 단계마다 신호음과 음성을 낸다. */
+let actx = null, lastCount = 0, koVoice = null;
+function unlockAudio(){
+  try{
+    if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+  }catch{}
+}
+window.addEventListener('pointerdown', unlockAudio, {passive:true});
+window.addEventListener('keydown', unlockAudio);
+
+/* 순수 사인파는 음량을 올려도 웅웅거리기만 한다. 한 옥타브 위 배음을 살짝 얹으면
+   같은 음량에서도 행사장 소음 너머로 훨씬 또렷하게 들린다. */
+function beep(freq, ms, vol = 1){
+  if(!CFG.sound || !actx || actx.state !== 'running') return;
+  const peak = Math.max(0, Math.min(1, vol * (CFG.soundVol ?? 0.55)));
+  if(peak <= 0) return;
+  const t = actx.currentTime, dur = ms/1000;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(peak, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  g.connect(actx.destination);
+  for(const [mult, share] of [[1, 0.75], [2, 0.25]]){
+    const o = actx.createOscillator(), og = actx.createGain();
+    o.type = 'sine'; o.frequency.value = freq * mult; og.gain.value = share;
+    o.connect(og); og.connect(g);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+}
+function loadVoice(){
+  try{ koVoice = (speechSynthesis.getVoices() || []).find(v => /^ko/i.test(v.lang)) || null; }catch{}
+}
+if('speechSynthesis' in window){
+  loadVoice();
+  speechSynthesis.addEventListener('voiceschanged', loadVoice);
+}
+function say(text){
+  if(!CFG.sound || !('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR'; u.rate = 1.0; u.pitch = 1.0; u.volume = 1;
+    if(koVoice) u.voice = koVoice;
+    speechSynthesis.speak(u);
+  }catch{}
+}
+
+function setView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id===id));
+  const hl = $('#homelink');
+  hl.classList.toggle('on', HAS_PARENT && id!=='view-dashboard');
+  hl.classList.toggle('low', id==='view-measure');
+}
+
+function setState(s){
+  const prev = st;
+  st = s; tMark = performance.now(); held = 0; lost = 0; absent = 0;
+  $('#bigcount').classList.toggle('on', s===ST.COUNT);
+  $('#ring').classList.toggle('on', s===ST.MEASURE);
+  $('#turn').classList.toggle('on', s===ST.TURN);
+  if(s === ST.COUNT && prev !== ST.COUNT){ lastCount = 0; beep(760, 130, 0.9); }
+  if(s === ST.MEASURE && prev !== ST.MEASURE){ beep(1180, 170, 1); say('측정 중입니다'); }
+}
+let toastTimer;
+function toast(msg, ms=2200){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'), ms);
+}
+
+function clearSnap(){ snapInfo = null; snap.width = snap.height = 0; }
+function goIdle(){
+  stage = 1; samples = []; frontResult = null; clearSnap();
+  setView('view-attract'); setState(ST.IDLE);
+}
+function startRun(){
+  stage = 1; samples = []; frontResult = null; clearSnap();
+  setView('view-measure'); setState(ST.GATE);
+}
+
+/* ------------------------------------------------------- 자세 품질 판정 */
+function qualityOf(m){
+  if(!m)                   return {ok:false, why:'사람이 감지되지 않았어요', chip:'사람 감지 중'};
+  if(m.conf < 0.55)        return {ok:false, why:'어깨와 골반이 모두 보이도록 서 주세요', chip:'인식 불안정'};
+  const h = cv.height || 720;
+  if(m.torso < h*0.14)     return {ok:false, why:'카메라 쪽으로 한 걸음 다가와 주세요', chip:'너무 멀어요'};
+  if(m.torso > h*0.62)     return {ok:false, why:'한 걸음 뒤로 물러나 주세요', chip:'너무 가까워요'};
+  if(m.viewRatio < CFG.frontViewMin)
+    return {ok:false, why: stage===1 ? '어깨를 카메라와 나란히 맞춰 주세요'
+                                     : '등을 카메라 쪽으로 곧게 보여주세요', chip:'몸이 돌아감'};
+  /* 2단계인데 아직 정면으로 보이면 알려만 주고 막지는 않는다.
+     앞/뒤 판정은 모델 추정이라 틀릴 수 있고, 여기서 막으면 부스가 멈춘다. */
+  if(stage === 2 && m.facingCam)
+    return {ok:true, why:'뒤로 돌아 등을 보여주세요', chip:'뒤로 도세요'};
+  return {ok:true, why:'좋아요, 그대로 멈춰 주세요', chip:'자세 좋아요'};
+}
+
+/* ---------------------------------------------------------- 메인 루프 */
+let lastTick = 0;
+function loop(){
+  if(!running) return;
+  requestAnimationFrame(loop);
+  if(video.readyState < 2) return;
+
+  const now = performance.now();
+  // 실제 경과 시간으로 재야 한다. 프레임 수로 세면 fps 에 따라 대기 시간이 2배까지 달라진다.
+  const dt = lastTick ? Math.min(120, now - lastTick) : 16;
+  lastTick = now;
+
+  let m = lastMetrics;
+  if(video.currentTime !== lastVideoTs){
+    lastVideoTs = video.currentTime;
+    const res = landmarker.detectForVideo(video, now);
+    const lm = res.landmarks && res.landmarks[0];
+    m = lm ? metricsOf(lm, cv.width, cv.height) : null;
+    lastMetrics = m;
+  }
+  const q = qualityOf(m);
+
+  draw(m, q);
+  updateCalib(m, q);
+  if(st !== ST.IDLE || $('#view-measure').classList.contains('on')) updateHud(q, now);
+  tick(m, q, now, dt);
+}
+
+function tick(m, q, now, dt){
+  // 측정 도중 그냥 가버리는 일이 흔하다. 그대로 두면 라이브 카메라가 계속 켜져 있다.
+  if(st === ST.GATE || st === ST.COUNT){
+    if(!m || m.conf < 0.4) absent += dt; else absent = 0;
+    if(absent >= CFG.idleAbortMs){ goIdle(); return; }
+  }else{
+    absent = 0;
+  }
+
+  switch(st){
+    case ST.IDLE:
+      if(KIOSK){
+        if(m && m.conf > 0.6) held += dt; else held = 0;
+        if(held >= CFG.idleEnterMs) startRun();
+      }
+      break;
+
+    case ST.GATE:
+      if(q.ok) held += dt; else held = 0;
+      if(held >= CFG.gateMs){ samples = []; setState(ST.COUNT); }
+      break;
+
+    case ST.COUNT:
+      if(!q.ok) lost += dt; else lost = 0;
+      if(lost > 700){ setState(ST.GATE); break; }
+      if(now - tMark >= CFG.countdownMs){ samples = []; setState(ST.MEASURE); }
+      break;
+
+    case ST.MEASURE:
+      if(q.ok && m) samples.push(m);
+      // 측정창 한가운데의 프레임을 겹쳐보기용으로 남겨둔다 (1단계 정면만)
+      if(stage === 1 && m && !snapInfo && now - tMark >= CFG.measureMs/2) grabSnap(m);
+      if(now - tMark >= CFG.measureMs) finishMeasure();
+      break;
+
+    case ST.TURN:
+      // 돌아서는 동안은 아무것도 재지 않는다. 시간이 지나면 2단계 게이트로.
+      if(now - tMark >= CFG.turnMs){ stage = 2; samples = []; setState(ST.GATE); }
+      break;
+  }
+}
+
+function grabSnap(m){
+  snap.width = cv.width; snap.height = cv.height;
+  sctx.drawImage(video, 0, 0, snap.width, snap.height);
+  snapInfo = {midShX:m.midSh.x, midShY:m.midSh.y, midHipX:m.midHip.x, midHipY:m.midHip.y, shW:m.shW};
+}
+
+function finishMeasure(){
+  if(samples.length < CFG.minSamples){
+    /* 다시 재는 김에 겹쳐보기용 사진도 버린다. 그대로 두면 '흔들려서 버린 시도'의
+       프레임이 결과 화면에 실리고, 숫자는 재측정분인데 그림만 옛것이 된다. */
+    if(stage === 1) clearSnap();
+    toast('자세가 흔들렸어요. 다시 측정합니다');
+    setState(ST.GATE);
+    return;
+  }
+  const agg = {
+    shTilt: median(samples.map(s=>s.shTilt)),
+    pvTilt: median(samples.map(s=>s.pvTilt)),
+    shift:  median(samples.map(s=>s.shift)),
+    n: samples.length
+  };
+  if(stage === 1){
+    frontResult = agg;
+    setState(ST.TURN);
+    beep(900, 120, 0.9);
+    say('1차 측정이 끝났어요. 그 자리에서 뒤로 돌아 주세요');
+  }else{
+    beep(760, 110, 0.9); setTimeout(() => beep(1020, 220, 1), 130);
+    showResult(frontResult, agg);
+  }
+}
+
+/* ------------------------------------------------------------- 렌더링 */
+function updateHud(q, now){
+  $('#stagenum').textContent = stage;
+  $('#stagename').textContent = stage===1 ? '정면 측정' : '뒤돌아 측정';
+  const chip = $('#qualitychip');
+  chip.textContent = q.chip;
+  chip.classList.toggle('good', q.ok);
+  chip.classList.toggle('bad', !q.ok);
+
+  if(st === ST.GATE){
+    $('#prompt').textContent = stage===1 ? '정면으로 서 주세요' : '등을 보이고 서 주세요';
+    $('#hint').textContent = q.ok ? '좋아요, 그대로 멈춰 주세요…' : q.why;
+  }else if(st === ST.COUNT){
+    const left = Math.ceil((CFG.countdownMs - (now - tMark))/1000);
+    const shown = Math.max(1, left);
+    $('#bigcount').textContent = shown;
+    if(shown !== lastCount){ lastCount = shown; beep(620, 90, 0.75); }
+    $('#prompt').textContent = '그대로 멈춰 주세요';
+    /* 짝다리와 다리 길이 차이는 골반 기울기를 몇 도씩 흔든다. 2.5초 중위값은 떨림만
+       잡아줄 뿐 자세는 못 잡으므로, 재기 직전에 발과 체중을 말로 안내한다. */
+    $('#hint').textContent = '발은 어깨너비로, 양발에 체중을 고르게';
+  }else if(st === ST.MEASURE){
+    const p = clamp((now - tMark)/CFG.measureMs, 0, 1);
+    $('#ring').firstElementChild.style.width = (p*100)+'%';
+    $('#prompt').textContent = '측정 중…';
+    $('#hint').textContent = `유효 프레임 ${samples.length}개`;
+  }else if(st === ST.TURN){
+    $('#prompt').textContent = '';
+    $('#hint').textContent = '';
+  }
+}
+
+function draw(m, q){
+  const W = cv.width, H = cv.height;
+  if(!W) return;
+  ctx.save();
+  if(CFG.mirror){ ctx.translate(W,0); ctx.scale(-1,1); }
+  ctx.drawImage(video, 0, 0, W, H);
+  ctx.restore();
+
+  ctx.fillStyle = 'rgba(8,12,24,.28)';
+  ctx.fillRect(0,0,W,H);
+  if(!m) return;
+
+  // 좌우 반전은 보여주기용이다. 측정값은 항상 원본 좌표로 계산한다.
+  const mx = p => CFG.mirror ? W - p.x : p.x;
+  const col = q.ok ? '#34d399' : '#fbbf24';
+  /* 각도 숫자를 띄워두면 체험자가 그 값을 보며 자세를 맞춰 점수를 끌어올린다.
+     운영자가 캘리브레이션 창(C)을 연 동안에만 보여준다. */
+  const showNums = $('#calib').classList.contains('on');
+
+  // 몸의 중심 수직선 (골반중점 기준)
+  ctx.setLineDash([9,9]); ctx.lineWidth = 2; ctx.strokeStyle = '#ffffff5c';
+  ctx.beginPath(); ctx.moveTo(mx(m.midHip), 0); ctx.lineTo(mx(m.midHip), H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 6; ctx.strokeStyle = col;
+  ctx.beginPath(); ctx.moveTo(mx(m.lsh), m.lsh.y);  ctx.lineTo(mx(m.rsh), m.rsh.y);  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mx(m.lhip), m.lhip.y); ctx.lineTo(mx(m.rhip), m.rhip.y); ctx.stroke();
+  ctx.lineWidth = 4; ctx.strokeStyle = col + 'bb';
+  ctx.beginPath(); ctx.moveTo(mx(m.midSh), m.midSh.y); ctx.lineTo(mx(m.midHip), m.midHip.y); ctx.stroke();
+
+  for(const p of [m.lsh, m.rsh, m.lhip, m.rhip]) dot(mx(p), p.y, col);
+
+  if(showNums){
+    label(`어깨 ${m.shTilt.toFixed(1)}°`, mx(m.midSh), Math.min(m.lsh.y, m.rsh.y) - 42, col);
+    label(`골반 ${m.pvTilt.toFixed(1)}°`, mx(m.midHip), Math.max(m.lhip.y, m.rhip.y) + 46, col);
+  }
+
+  function dot(x,y,c){
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,9,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=c;      ctx.beginPath(); ctx.arc(x,y,5.5,0,Math.PI*2); ctx.fill();
+  }
+  function label(text,x,y,c){
+    ctx.font = '800 30px "Malgun Gothic", system-ui, sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    const w = ctx.measureText(text).width + 26;
+    ctx.fillStyle='#050a16d9';
+    ctx.beginPath(); ctx.roundRect(x-w/2, y-22, w, 44, 12); ctx.fill();
+    ctx.fillStyle=c; ctx.fillText(text, x, y);
+  }
+}
+
+/* --------------------------------------------------- 두 번 측정 → 분리
+   front(정면) 와 back(뒤돌기) 를 받아 실제 기울기와 카메라 기울기로 나눈다.
+   부호 약속: + 는 모두 '사람 자신의 오른쪽'. 정면 측정에서는 사람의 오른쪽이
+   화면 왼쪽에 오므로, 화면 기준 값에서 그대로 끌어낼 수 있다(머리말 주석 참고). */
+function decompose(front, back){
+  const half = (a,b) => ({body:(a-b)/2, cam:(a+b)/2});
+  const sh = half(front.shTilt, back.shTilt);   // body > 0 → 오른쪽 어깨가 높다
+  const pv = half(front.pvTilt, back.pvTilt);
+  // 치우침은 부호 방향이 기울기와 반대라 뒤집어 맞춘다 (+ = 몸통이 오른쪽으로)
+  const sfBody = (back.shift - front.shift)/2;
+  const sfCam  = (front.shift + back.shift)/2;
+  return {
+    shBody: sh.body, pvBody: pv.body, sfBody,
+    shCam: sh.cam,   pvCam: pv.cam,   sfCam,
+    camTilt: (sh.cam + pv.cam)/2      // 어깨·골반 두 선에서 본 카메라 기울기의 평균
+  };
+}
+
+/* ------------------------------------------------------------ 결과화면 */
+function showResult(front, back, save = true){
+  const d = decompose(front, back);
+  const score = scoreOf(d.shBody, d.pvBody, d.sfBody);
+  const lv = levelOf(score);
+
+  const rec = {ts:Date.now(), score, level:lv.key,
+               sh:+d.shBody.toFixed(2), pv:+d.pvBody.toFixed(2), sf:+d.sfBody.toFixed(2),
+               cam:+d.camTilt.toFixed(2), nFront:front.n, nBack:back.n};
+  if(save){ const recs = loadRecs(); recs.push(rec); saveRecs(recs); }
+
+  $('#lvTag').textContent = lv.name;
+  $('#lvTag').style.background = lv.color;
+  $('#lvScore').textContent = score;
+  $('#lvName').textContent = lv.short;
+  $('#lvName').style.color = lv.color;
+  $('#lvDesc').innerHTML = lv.desc;        /* desc 의 <br> 을 살린다 (내용은 위 상수뿐) */
+  $('#lvPin').style.left = score + '%';
+
+  const sideOf = (v, dz, hi, lo) => Math.abs(v) <= dz ? '좌우 비슷'
+                                  : (v > 0 ? hi : lo);
+  $('#mSh').innerHTML = `${Math.abs(d.shBody).toFixed(1)}°` +
+    `<span class="side">${sideOf(d.shBody, CFG.shDz, '오른쪽이 높음', '왼쪽이 높음')}</span>`;
+  $('#mPv').innerHTML = `${Math.abs(d.pvBody).toFixed(1)}°` +
+    `<span class="side">${sideOf(d.pvBody, CFG.pvDz, '오른쪽이 높음', '왼쪽이 높음')}</span>`;
+  $('#mSf').innerHTML = `${Math.abs(d.sfBody).toFixed(1)}%` +
+    `<span class="side">${sideOf(d.sfBody, CFG.sfDz, '오른쪽으로', '왼쪽으로')}</span>`;
+  $('#mCam').textContent = `${d.camTilt >= 0 ? '+' : ''}${d.camTilt.toFixed(1)}°`;
+
+  /* 카메라 기울기는 버리는 값이 아니다 — 이게 크면 장비를 고치라는 신호다.
+     1회 측정만 했다면 이 값이 그대로 체험자 점수에 섞여 들어갔을 것이다. */
+  const warn = $('#camwarn');
+  const camOff = Math.abs(d.camTilt) > CFG.camWarnDeg;
+  warn.classList.toggle('on', camOff);
+  if(camOff){
+    warn.innerHTML = `카메라가 <b>${Math.abs(d.camTilt).toFixed(1)}° 기울어</b> 있습니다.
+      결과에서는 이미 빼냈지만, 노트북 화면(또는 웹캠)을 바로 세우면 측정이 더 안정됩니다.`;
+  }
+
+  $('#funPct').textContent = score + '%';
+  $('#funSub').textContent = score >= 95
+    ? '거의 완벽한 대칭이에요. 사실 사람의 몸은 원래 좌우가 조금씩 다릅니다!'
+    : '사람의 몸은 원래 좌우가 완전히 같지 않아요. 재미로만 봐 주세요.';
+
+  const today = todayRecs();
+  const hasRank = today.length >= 5;
+  const better = today.filter(r=>r.score > score).length;
+  $('#rankline').textContent = hasRank
+    ? `오늘 측정한 ${today.length}명 중 상위 ${Math.round((better+1)/today.length*100)}%` : '';
+  $('#rankline').hidden = !hasRank;
+
+  drawFold(d.camTilt);
+  renderQR(rec);
+  setView('view-result');
+  setState(ST.RESULT);
+}
+
+/* 좌우를 접어서 겹쳐보기.
+   ① 카메라 기울기만큼 먼저 되돌려(roll 보정) 몸을 똑바로 세운다.
+   ② 몸의 중심선(어깨중점·골반중점의 가운데)을 축으로 삼는다.
+   ③ 왼쪽 절반을 뒤집어 오른쪽에 반투명으로 포갠다 — 윤곽이 어긋난 만큼이 좌우 차이다.
+   측정 숫자보다 이 그림이 훨씬 설득력이 있어서 대표 화면으로 둔다. */
+function drawFold(camTilt){
+  const fold = $('#fold'), card = document.querySelector('.foldcard');
+  if(!snapInfo || !snap.width){
+    fold.width = 16; fold.height = 9;
+    $('#foldsec').style.display = 'none';
+    card.classList.add('nofold');
+    return;
+  }
+  $('#foldsec').style.display = '';
+  card.classList.remove('nofold');
+  const W = snap.width, H = snap.height;
+  fold.width = W; fold.height = H;
+  const f = fold.getContext('2d');
+
+  // 축: 어깨중점과 골반중점의 중간 x. 어깨만 쓰면 어깨 자체의 치우침이 축을 끌고 간다.
+  const cx = (snapInfo.midShX + snapInfo.midHipX)/2;
+  const cy = (snapInfo.midShY + snapInfo.midHipY)/2;
+  const rot = -camTilt * Math.PI/180;
+
+  // 바로 세운 원본
+  f.save();
+  f.translate(cx, cy); f.rotate(rot); f.translate(-cx, -cy);
+  f.drawImage(snap, 0, 0);
+  f.restore();
+
+  // 같은 그림을 중심선 기준으로 뒤집어, 오른쪽 절반에만 반투명으로 포갠다
+  f.save();
+  f.beginPath(); f.rect(cx, 0, W - cx, H); f.clip();
+  f.globalAlpha = 0.5;
+  f.globalCompositeOperation = 'lighter';   // 어긋난 윤곽이 밝게 떠올라 눈에 잘 띈다
+  f.translate(cx, cy); f.rotate(rot); f.translate(-cx, -cy);
+  f.translate(2*cx, 0); f.scale(-1, 1);
+  f.drawImage(snap, 0, 0);
+  f.restore();
+
+  // 중심선과 좌/우 라벨
+  f.save();
+  f.setLineDash([14, 12]); f.lineWidth = 3; f.strokeStyle = '#ffffffcc';
+  f.beginPath(); f.moveTo(cx, 0); f.lineTo(cx, H); f.stroke();
+  f.setLineDash([]);
+  f.font = '800 30px "Malgun Gothic", system-ui, sans-serif';
+  f.textBaseline = 'top';
+  f.fillStyle = '#ffffffe0';
+  /* 화면 왼쪽은 정면으로 선 사람의 '오른쪽'이다. 체험자가 헷갈리지 않게 그렇게 적는다. */
+  f.textAlign = 'right'; f.fillText('← 내 오른쪽', cx - 22, 22);
+  f.textAlign = 'left';  f.fillText('내 왼쪽을 포갠 쪽 →', cx + 22, 22);
+  f.restore();
+}
+
+function resultUrl(rec){
+  const base = (CFG.resultBaseUrl || '').trim();
+  if(!base) return '';
+  const q = `s=${rec.score}&l=${rec.level}&sh=${rec.sh}&pv=${rec.pv}&sf=${rec.sf}`;
+  return `${base}${base.includes('#') ? '&' : '#'}${q}`;
+}
+
+/* QR: kazuhikoarase/qrcode-generator (UMD, 전역 `qrcode`) */
+async function ensureQRLib(){
+  if(window.qrcode) return true;
+  for(const u of ['../../vendor/qrcode.js', '../../booth/vendor/qrcode.js',
+                  'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js']){
+    try{
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script'); s.src=u; s.onload=res; s.onerror=rej;
+        document.head.appendChild(s);
+      });
+      if(window.qrcode) return true;
+    }catch{}
+  }
+  return false;
+}
+
+async function renderQR(rec){
+  const card = $('#qrcard'), box = $('#qr'), url = resultUrl(rec);
+  /* 결과 페이지가 아직 없으면 QR 자리를 통째로 감춘다. 거북목처럼
+     '주소를 입력하세요' 안내를 체험자에게 보여줄 이유가 없다. */
+  card.style.display = url ? '' : 'none';
+  if(!url) return;
+  box.innerHTML = '';
+  box.dataset.url = url;
+  box.title = url;
+  if(await ensureQRLib()){
+    try{
+      const qr = window.qrcode(0, 'M');      // 0 = 버전 자동
+      qr.addData(url); qr.make();
+      box.innerHTML = qr.createSvgTag({cellSize:8, margin:0, scalable:true});
+      return;
+    }catch{
+      try{ const qr = window.qrcode(0, 'L'); qr.addData(url); qr.make();
+           box.innerHTML = qr.createImgTag(8, 0); return; }catch{}
+    }
+  }
+  box.innerHTML = `<div id="qrfallback">${url}</div>`;
+}
+
+/* --------------------------------------------------------- 집계 화면 */
+function renderDash(){
+  const recs = todayRecs();
+  const n = recs.length;
+  const avg = n ? Math.round(recs.reduce((s,r)=>s+r.score,0)/n) : 0;
+  const sh  = n ? recs.reduce((s,r)=>s+Math.abs(r.sh),0)/n : 0;
+  const cam = n ? recs.reduce((s,r)=>s+Math.abs(r.cam),0)/n : 0;
+  $('#dN').textContent = n;
+  $('#dAvg').textContent = avg;
+  $('#dSh').textContent = sh.toFixed(1);
+  $('#dCam').textContent = cam.toFixed(1);
+
+  const counts = {good:0, watch:0, consult:0};
+  recs.forEach(r=>{ if(counts[r.level]!==undefined) counts[r.level]++; });
+  const max = Math.max(1, ...Object.values(counts));
+  $('#dDist').innerHTML = LEVELS.map(l=>`
+    <div class="distcol">
+      <div class="cnt">${counts[l.key]}명</div>
+      <div class="bar" style="height:${counts[l.key]/max*100}%;background:${l.color}"></div>
+      <div class="lab" style="color:${l.color}">${l.name}</div>
+    </div>`).join('');
+
+  $('#dRecent').innerHTML = recs.slice(-10).reverse().map(r=>{
+    const t = new Date(r.ts);
+    const hh = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    const l = LEVELS.find(x=>x.key===r.level) || LEVELS[LEVELS.length-1];
+    return `<div class="r">
+      <div class="t">${hh}</div>
+      <div class="b"><i style="width:${r.score}%;background:${l.color}"></i></div>
+      <div class="sc">${r.score}점</div>
+      <div class="gr" style="color:${l.color}">${l.name}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ------------------------------------------------- 캘리브레이션 오버레이 */
+function updateCalib(m, q){
+  const el = $('#calib');
+  if(!el.classList.contains('on')) return;
+  const row = (k,v) => `<div class="cl"><span>${k}</span><b>${v}</b></div>`;
+  el.innerHTML = `<h4>CALIBRATION &nbsp;(C 키로 닫기)</h4>` +
+    row('상태', `${st} / ${stage}단계`) +
+    row('자세 판정', q.ok ? 'OK' : q.chip) +
+    (m ? (
+      row('어깨 기울기 (화면)', `${m.shTilt.toFixed(2)}°`) +
+      row('골반 기울기 (화면)', `${m.pvTilt.toFixed(2)}°`) +
+      row('중심 치우침 (화면)', `${m.shift.toFixed(2)}%`) +
+      row('시야 비율 (어깨/몸통)', m.viewRatio.toFixed(3)) +
+      row('몸통 길이', `${m.torso.toFixed(0)}px / ${cv.height}px`) +
+      row('가시성 (어깨·골반)', m.conf.toFixed(2)) +
+      row('앞/뒤 추정', m.facingCam ? '정면' : '후면')
+    ) : row('랜드마크', '없음')) +
+    row('1차(정면) 어깨', frontResult ? `${frontResult.shTilt.toFixed(2)}°` : '–') +
+    row('수집 샘플', `${samples.length}개`) +
+    row('정면 임계', `${CFG.frontViewMin}`) +
+    row('모델 자산', assetMode);
+}
+
+/* ------------------------------------------------------- 운영자 패널 */
+const OP_FIELDS = [
+  ['감점 (불감대 / 가중치)', [
+    ['shDz','어깨 불감대 (°)'], ['shW','어깨 1° 당 감점'],
+    ['pvDz','골반 불감대 (°)'], ['pvW','골반 1° 당 감점'],
+    ['sfDz','치우침 불감대 (%)'], ['sfW','치우침 1% 당 감점']]],
+  ['자세 판정', [
+    ['frontViewMin','정면 비율 ≥'],
+    ['minSamples','최소 유효 프레임'],
+    ['camWarnDeg','카메라 기울기 경고 (°)']]],
+  ['타이밍 (ms)', [
+    ['gateMs','자세 유지'], ['countdownMs','카운트다운'],
+    ['measureMs','측정 시간'], ['turnMs','돌아서는 시간']]]
+];
+
+function buildOpPanel(){
+  const p = $('#panel-op');
+  p.innerHTML = `
+    <h3>운영자 패널</h3>
+    <p class="ophint">O 닫기 · C 캘리브레이션 · D 집계화면<br>
+      값은 즉시 저장되며 다음 측정부터 적용됩니다.<br>
+      <b>처음 설치했다면</b> C 를 눌러 정면으로 선 사람의 ‘시야 비율’을 읽고,
+      그 값의 85% 정도를 아래 ‘정면 비율 ≥’ 에 넣어 주세요.</p>
+    ${OP_FIELDS.map(([title,fields])=>`
+      <fieldset><legend>${title}</legend>
+        ${fields.map(([k,label])=>`
+          <div class="f"><label for="op_${k}">${label}</label>
+          <input id="op_${k}" type="number" step="any" value="${CFG[k]}"></div>`).join('')}
+      </fieldset>`).join('')}
+    <fieldset><legend>결과 QR</legend>
+      <div class="f col"><label for="op_url">결과 페이지 주소 (비우면 QR 숨김)</label>
+        <input id="op_url" type="text" value="${CFG.resultBaseUrl}"></div>
+    </fieldset>
+    <fieldset><legend>카메라</legend>
+      <div class="f col"><label for="op_cam">장치</label><select id="op_cam"></select></div>
+      <div class="f"><label for="op_mirror">좌우 반전 (보기용)</label>
+        <input id="op_mirror" type="checkbox" style="width:auto" ${CFG.mirror?'checked':''}></div>
+    </fieldset>
+    <fieldset><legend>소리</legend>
+      <div class="f"><label for="op_sound">안내음·음성</label>
+        <input id="op_sound" type="checkbox" style="width:auto" ${CFG.sound?'checked':''}></div>
+      <div class="f"><label for="op_vol">안내음 크기 (0~1)</label>
+        <input id="op_vol" type="number" step="0.05" min="0" max="1" value="${CFG.soundVol}"></div>
+    </fieldset>
+    <fieldset><legend>데이터 (${loadRecs().length}건 저장됨)</legend>
+      <div class="opbtns">
+        <button class="p" id="op_csv">CSV 내보내기</button>
+        <button id="op_dash">집계화면 열기</button>
+        <button id="op_preview">결과화면 미리보기</button>
+        <button class="d" id="op_reset">기록 전체 삭제</button>
+        <button class="d" id="op_cfgreset">설정 초기화</button>
+      </div>
+    </fieldset>`;
+
+  OP_FIELDS.flatMap(([,f])=>f).forEach(([k])=>{
+    $(`#op_${k}`).addEventListener('change', e=>{
+      const v = parseFloat(e.target.value);
+      if(Number.isFinite(v)){ CFG[k]=v; saveCfg(); toast(`${k} = ${v}`, 1200); }
+    });
+  });
+  $('#op_url').addEventListener('change', e=>{ CFG.resultBaseUrl=e.target.value.trim(); saveCfg(); toast('결과 주소 저장'); });
+  $('#op_mirror').addEventListener('change', e=>{ CFG.mirror=e.target.checked; saveCfg(); });
+  $('#op_sound').addEventListener('change', e=>{
+    CFG.sound = e.target.checked; saveCfg();
+    if(CFG.sound){ unlockAudio(); beep(900, 120, 0.9); }else{ try{ speechSynthesis.cancel(); }catch{} }
+    toast(CFG.sound ? '소리 켬' : '소리 끔', 1200);
+  });
+  $('#op_vol').addEventListener('change', e=>{
+    const v = parseFloat(e.target.value);
+    if(!Number.isFinite(v)) return;
+    CFG.soundVol = clamp(v, 0, 1); saveCfg();
+    e.target.value = CFG.soundVol;
+    unlockAudio(); beep(900, 150, 1);
+    toast(`안내음 크기 ${CFG.soundVol}`, 1200);
+  });
+  $('#op_csv').addEventListener('click', exportCsv);
+  $('#op_dash').addEventListener('click', ()=>window.open(location.pathname+'#dashboard','_blank'));
+  $('#op_preview').addEventListener('click', ()=>{
+    $('#panel-op').hidden = true;
+    window.__balPreview();
+    toast('미리보기입니다 — 기록에 저장되지 않습니다', 2600);
+  });
+  $('#op_reset').addEventListener('click', ()=>{
+    if(confirm('저장된 측정 기록을 모두 삭제합니다. 계속할까요?\n(리허설 데이터 정리용 — 되돌릴 수 없습니다)')){
+      localStorage.removeItem(REC_KEY); buildOpPanel(); renderDash(); toast('기록을 삭제했습니다');
+    }
+  });
+  $('#op_cfgreset').addEventListener('click', ()=>{
+    if(confirm('모든 설정을 기본값으로 되돌립니다. 계속할까요?')){
+      CFG={...CFG_DEFAULT}; saveCfg(); buildOpPanel(); toast('설정을 초기화했습니다');
+    }
+  });
+  fillCameras();
+}
+
+async function fillCameras(){
+  const sel = $('#op_cam'); if(!sel) return;
+  try{
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+    sel.innerHTML = devs.map((d,i)=>
+      `<option value="${d.deviceId}" ${d.deviceId===CFG.camId?'selected':''}>${d.label||`카메라 ${i+1}`}</option>`
+    ).join('') || '<option value="">(없음)</option>';
+    sel.onchange = async e => {
+      CFG.camId = e.target.value; saveCfg();
+      await startCamera(); toast('카메라를 변경했습니다');
+    };
+  }catch{}
+}
+
+function exportCsv(){
+  const recs = loadRecs();
+  if(!recs.length){ toast('내보낼 기록이 없습니다'); return; }
+  const cols = ['ts','date','time','score','level','shoulderDeg','pelvisDeg','shiftPct','cameraDeg','nFront','nBack'];
+  const lines = [cols.join(',')];
+  recs.forEach(r=>{
+    const t = new Date(r.ts);
+    lines.push([r.ts, dayKey(r.ts), t.toLocaleTimeString('ko-KR',{hour12:false}),
+      r.score, r.level, r.sh, r.pv, r.sf, r.cam, r.nFront, r.nBack].join(','));
+  });
+  const blob = new Blob(['﻿'+lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `좌우균형_${dayKey(Date.now())}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast(`${recs.length}건을 내보냈습니다`);
+}
+
+/* ------------------------------------------------------------ 모델/카메라 */
+const MP_VER = '0.10.14';
+/* 앱은 `scoliosis/app/` 에 있고 시작 페이지가 `scoliosis/` 를 차지한다. 그래서
+   자산은 로컬에서 `../../vendor/`, 공개본에서 `../../booth/vendor/` 에 있다.
+   거북목에서 같은 파일의 사본을 두 경로에 두었다가 계속 어긋났으므로, 이번에는
+   파일을 하나만 두고 경로 후보를 차례로 시도한다(앱을 한 칸 옮겨도 여기만 늘리면 된다).
+   모두 없으면 CDN 으로 넘어간다. */
+const ASSET_BASES = ['../../', '../../booth/', '../', '../booth/', './'];
+const ASSETS = [
+  ...ASSET_BASES.map(b => ({tag:'로컬', vision:`${b}vendor/tasks-vision/vision_bundle.mjs`,
+                            wasm:`${b}vendor/tasks-vision/wasm`,
+                            model:`${b}models/pose_landmarker_lite.task`})),
+  {tag:'CDN',
+   vision:`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/vision_bundle.mjs`,
+   wasm:`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`,
+   model:'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'}
+];
+/* 미리 HEAD 로 떠보지 않는 이유: 그 탐색 요청이 개발자도구 네트워크 탭을 빨갛게
+   물들여 현장에서 진짜 문제를 찾기 어렵게 만든다. 그냥 import 해보고 넘어간다. */
+async function initModel(){
+  let lastErr = null;
+  for(const A of ASSETS){
+    try{
+      $('#bootmsg').textContent = `모델 불러오는 중… (${A.tag})`;
+      const {PoseLandmarker, FilesetResolver} = await import(A.vision);
+      const fileset = await FilesetResolver.forVisionTasks(A.wasm);
+      const opts = delegate => ({
+        baseOptions:{modelAssetPath:A.model, delegate},
+        runningMode:'VIDEO', numPoses:1,
+        minPoseDetectionConfidence:0.5, minPosePresenceConfidence:0.5, minTrackingConfidence:0.5
+      });
+      try{ landmarker = await PoseLandmarker.createFromOptions(fileset, opts('GPU')); }
+      catch{ landmarker = await PoseLandmarker.createFromOptions(fileset, opts('CPU')); }
+      assetMode = A.tag === '로컬' ? '로컬 (오프라인 OK)' : 'CDN (인터넷 필요)';
+      return assetMode;
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr ?? new Error('모델을 불러올 수 없습니다');
+}
+
+function withTimeout(promise, ms, what){
+  return Promise.race([
+    promise,
+    new Promise((_,rej)=>setTimeout(()=>{
+      const e = new Error(`${what} 응답이 ${ms/1000}초 안에 오지 않았습니다`);
+      e.name = 'TimeoutError'; rej(e);
+    }, ms))
+  ]);
+}
+
+let stream = null;
+async function startCamera(){
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  stream = await withTimeout(navigator.mediaDevices.getUserMedia({
+    audio:false,
+    video:{ deviceId: CFG.camId ? {exact:CFG.camId} : undefined,
+            width:{ideal:1280}, height:{ideal:720}, frameRate:{ideal:30} }
+  }), 15000, '카메라');
+  video.srcObject = stream;
+  try{ await video.play(); }catch{}
+  await withTimeout(new Promise(r=>{
+    if(video.videoWidth) return r();
+    video.onloadedmetadata = r;
+  }), 10000, '카메라 영상');
+  cv.width = video.videoWidth; cv.height = video.videoHeight;
+  lastVideoTs = -1;
+}
+
+function bootError(title, detail){
+  const b = $('#boot');
+  b.classList.add('err'); b.classList.remove('off');
+  $('#bootmsg').textContent = title;
+  const e = $('#booterr');
+  e.style.display = 'block';
+  e.innerHTML = detail;
+}
+
+/* ----------------------------------------------------------- 시작 */
+document.addEventListener('keydown', e=>{
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const k = e.key.toLowerCase();
+  if(k === 'o'){ const p=$('#panel-op'); p.hidden=!p.hidden; if(!p.hidden) buildOpPanel(); }
+  if(k === 'c'){ $('#calib').classList.toggle('on'); }
+  if(k === 'd'){
+    const on = $('#view-dashboard').classList.contains('on');
+    if(on) goIdle(); else { renderDash(); setView('view-dashboard'); setState(ST.RESULT); }
+  }
+  if(k === 'escape') goIdle();
+});
+
+/* 합성 랜드마크로 측정 로직을 검증할 때 쓰는 창구 */
+window.__balMetrics = (lm, W = cv.width || 1280, H = cv.height || 720) => metricsOf(lm, W, H);
+window.__balDecompose = decompose;
+
+/* 결과화면 미리보기 — 측정 없이 레이아웃을 확인할 때 사용 (기록에 저장되지 않음).
+   기본값은 '실제 어깨 2° 오른쪽 높음 + 카메라 1.8° 기울어짐' 을 흉내 낸 값이다.
+   겹쳐보기는 지금 카메라에 잡힌 사람으로 그려준다 — 운영자가 조명·거리·프레임을
+   맞출 때 숫자보다 이 그림이 더 빨리 알려준다. 사람이 없으면 그 칸만 접힌다. */
+window.__balPreview = (shBody = 2.0, camTilt = 1.8) => {
+  const f = {shTilt: shBody + camTilt, pvTilt: 1.2 + camTilt, shift: -2.4 + camTilt, n:54};
+  const b = {shTilt: -shBody + camTilt, pvTilt: -1.2 + camTilt, shift: 2.4 + camTilt, n:51};
+  if(lastMetrics && video.readyState >= 2) grabSnap(lastMetrics);
+  showResult(f, b, false);
+  return decompose(f, b);
+};
+
+$('#view-attract').addEventListener('click', ()=>{ if(st===ST.IDLE) startRun(); });
+$('#btnAgain').addEventListener('click', startRun);
+$('#btnDone').addEventListener('click', goIdle);
+window.addEventListener('storage', e=>{
+  if(e.key === REC_KEY && $('#view-dashboard').classList.contains('on')) renderDash();
+});
+
+(async function main(){
+  // 집계 전용 창: 카메라/모델 없이 띄운다 (보조 모니터용)
+  if(location.hash === '#dashboard'){
+    $('#boot').classList.add('off');
+    $('#privacy').style.display = 'none';
+    renderDash(); setView('view-dashboard');
+    setInterval(renderDash, 3000);
+    return;
+  }
+
+  if(!window.isSecureContext){
+    bootError('보안 컨텍스트가 아니라 카메라를 쓸 수 없습니다',
+      `브라우저는 <code>file://</code>로 열린 페이지에 카메라를 허용하지 않습니다.<br>
+       부스 폴더의 <code>start.ps1</code>을 우클릭 → <b>PowerShell에서 실행</b>하면
+       <code>http://localhost:8000</code>으로 열립니다.`);
+    return;
+  }
+  try{
+    await initModel();
+  }catch(err){
+    bootError('자세 인식 모델을 불러오지 못했습니다',
+      `<b>${err.name}</b>: ${err.message}<br><br>
+       인터넷 연결이 없으면 <code>download-offline.bat</code>을 먼저 실행해
+       모델을 내려받아 주세요. (행사장에서는 필수)`);
+    return;
+  }
+  try{
+    $('#bootmsg').textContent = '카메라 연결 중…';
+    await startCamera();
+  }catch(err){
+    bootError('카메라를 열 수 없습니다',
+      `<b>${err.name}</b>: ${err.message}<br><br>
+       · 주소창 왼쪽 자물쇠 아이콘에서 카메라 권한을 <b>허용</b>으로 바꿔주세요<br>
+       · 다른 프로그램(줌, 팀즈 등)이 카메라를 쓰고 있으면 종료해 주세요<br>
+       · USB 웹캠이면 케이블을 다시 꽂고 <b>F5</b>로 새로고침해 주세요`);
+    return;
+  }
+  $('#boot').classList.add('off');
+  running = true;
+  goIdle();
+  loop();
+})();
+</script>
+</body>
+</html>
