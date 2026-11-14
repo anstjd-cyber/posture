@@ -194,11 +194,12 @@
   }
   .card:focus-visible{border-radius:var(--r-m)}
 
-  /* 꼬리말 — 제작 주체 표기. 본문과 같은 폭 안에서 오른쪽에 붙인다.
+  /* 꼬리말 — 제작 주체 표기. 본문 폭 안에서 가운데 정렬.
      화면에 고정하지 않는다(부스 화면에서 등급 목록 위에 겹친다). */
   footer{border-top:1px solid var(--line);background:var(--surface)}
-  footer .inner{padding:18px 20px;text-align:right}
-  footer p{margin:0;font-size:14px;color:var(--text-subtle)}
+  footer .inner{padding:18px 20px;text-align:center}
+  /* 좁은 화면에서 줄이 바뀌어도 가운데에서 고르게 나뉘도록 균형을 준다 */
+  footer p{margin:0;font-size:14px;color:var(--text-subtle);text-wrap:balance}
 
   @media (prefers-reduced-motion:reduce){
     *{transition:none !important}
@@ -311,7 +312,7 @@
 
 <footer>
   <div class="inner">
-    <p>안동 ICT 연구회에서 제작했습니다.</p>
+    <p>이 웹사이트는 안동 ICT 연구회에서 생성형AI를 활용하여 제작했습니다.</p>
   </div>
 </footer>
 </body>
