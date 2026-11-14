@@ -997,7 +997,7 @@ function resultUrl(rec){
 /* QR: kazuhikoarase/qrcode-generator (UMD, 전역 `qrcode`) */
 async function ensureQRLib(){
   if(window.qrcode) return true;
-  for(const u of ['../../vendor/qrcode.js', '../../booth/vendor/qrcode.js',
+  for(const u of [...ASSET_BASES.map(b => `${b}vendor/qrcode.js`),
                   'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js']){
     try{
       await new Promise((res,rej)=>{
@@ -1225,7 +1225,13 @@ const MP_VER = '0.10.14';
    거북목에서 같은 파일의 사본을 두 경로에 두었다가 계속 어긋났으므로, 이번에는
    파일을 하나만 두고 경로 후보를 차례로 시도한다(앱을 한 칸 옮겨도 여기만 늘리면 된다).
    모두 없으면 CDN 으로 넘어간다. */
-const ASSET_BASES = ['../../', '../../booth/', '../', '../booth/', './'];
+/* 후보 순서는 지금 있는 곳에 맞춰 바꾼다. 순서가 틀리면 첫 요청이 반드시 실패해
+   개발자도구 네트워크 탭에 빨간 줄이 남고, 현장에서 진짜 고장을 찾기 어려워진다
+   (거북목에서도 같은 이유로 탐색 요청을 피했다). 결과는 어느 쪽이든 같다. */
+const ON_PAGES = /\.github\.io$/i.test(location.hostname);
+const ASSET_BASES = ON_PAGES
+  ? ['../../booth/', '../../', '../booth/', '../', './']   // 공개본: 자산이 booth/ 아래
+  : ['../../', '../../booth/', '../', '../booth/', './'];  // 로컬 부스: 자산이 폴더 루트
 const ASSETS = [
   ...ASSET_BASES.map(b => ({tag:'로컬', vision:`${b}vendor/tasks-vision/vision_bundle.mjs`,
                             wasm:`${b}vendor/tasks-vision/wasm`,
