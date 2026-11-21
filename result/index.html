@@ -310,9 +310,11 @@
   window.addEventListener('hashchange', () => location.reload());
   let grade = String(P.g || '').toUpperCase();
   if(!'ABCDE'.includes(grade) || grade.length !== 1){
-    // 등급이 없거나 깨졌으면 점수로 되돌려 추정한다 (20점 구간)
+    /* 등급이 없거나 깨졌으면 점수로 되돌려 추정한다.
+       경계는 측정 앱(SCORE_FLOOR 25 → 25~100 을 15점씩 5등분)과 **같아야 한다.**
+       한쪽만 고치면 같은 점수가 부스와 폰에서 다른 등급으로 보인다. */
     grade = score === null ? null
-          : score >= 81 ? 'A' : score >= 61 ? 'B' : score >= 41 ? 'C' : score >= 21 ? 'D' : 'E';
+          : score >= 85 ? 'A' : score >= 70 ? 'B' : score >= 55 ? 'C' : score >= 40 ? 'D' : 'E';
   }
   const hasResult = score !== null && grade !== null;
 
@@ -368,9 +370,9 @@
        점수와 등급이 어긋난 경우에도 혼자 엉뚱한 값이 뜨지 않게 하기 위해서다. */
     const sc = Math.round(score);
     $('#turtleAge').textContent = Math.round(15 + (100 - sc) * 0.5);
-    const up = sc >= 81 ? null
-             : sc >= 61 ? ['A', 81] : sc >= 41 ? ['B', 61]
-             : sc >= 21 ? ['C', 41] : ['D', 21];
+    const up = sc >= 85 ? null
+             : sc >= 70 ? ['A', 85] : sc >= 55 ? ['B', 70]
+             : sc >= 40 ? ['C', 55] : ['D', 40];
     $('#nowGrade').textContent = grade + '등급';
     $('#nowGrade').style.background = g.soft;
     $('#nowGrade').style.color = g.text;
